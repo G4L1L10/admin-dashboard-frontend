@@ -1,8 +1,8 @@
 // src/app/admin/courses/[courseId]/edit/page.tsx
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation"; // ✅ import useRouter
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,9 @@ import api from "@/lib/api";
 
 export default function EditCoursePage() {
   const { courseId } = useParams();
+  const router = useRouter(); // ✅ initialize router
+  const [courseTitle, setCourseTitle] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const [unit, setUnit] = useState(1);
   const [title, setTitle] = useState("");
@@ -17,6 +20,25 @@ export default function EditCoursePage() {
   const [difficulty, setDifficulty] = useState("easy");
   const [xpReward, setXpReward] = useState(100);
   const [crownsReward, setCrownsReward] = useState(5);
+
+  // Fetch the course title on page load
+  useEffect(() => {
+    async function fetchCourse() {
+      try {
+        const res = await api.get(`/courses/${courseId}`);
+        setCourseTitle(res.data.title);
+      } catch (error) {
+        console.error("Failed to fetch course title:", error);
+        setCourseTitle("Unknown Course");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (courseId) {
+      fetchCourse();
+    }
+  }, [courseId]);
 
   const handleCreateLesson = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,25 +54,26 @@ export default function EditCoursePage() {
       });
 
       console.log("Lesson Created:", res.data);
-      alert("Lesson created successfully!");
+      //      alert("Lesson created successfully!");
 
-      // Clear form
-      setUnit(unit + 1);
-      setTitle("");
-      setDescription("");
-      setDifficulty("easy");
-      setXpReward(100);
-      setCrownsReward(5);
+      const lessonId = res.data.id; // ✅ Capture the returned lessonId
+
+      // ✅ Redirect to Create Questions page
+      router.push(`/admin/lessons/${lessonId}/questions/create`);
     } catch (error) {
       console.error("Failed to create lesson:", error);
       alert("Failed to create lesson. Check console for details.");
     }
   };
 
+  if (loading) {
+    return <div className="p-6">Loading course...</div>;
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
-        Add Lesson for Course {courseId}
+        Add Lesson for {courseTitle}
       </h1>
 
       <form onSubmit={handleCreateLesson} className="flex flex-col gap-6">
