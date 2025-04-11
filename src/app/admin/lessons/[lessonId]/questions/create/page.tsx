@@ -18,7 +18,11 @@ export default function CreateQuestionsPage() {
   const [explanation, setExplanation] = useState("");
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [tags, setTags] = useState<string[]>([]);
+  const [pairs, setPairs] = useState<[string, string][]>([]);
   const [questionCount, setQuestionCount] = useState(1);
+
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [audioUrl, setAudioUrl] = useState<string>("");
 
   useEffect(() => {
     async function fetchLesson() {
@@ -52,18 +56,38 @@ export default function CreateQuestionsPage() {
 
   const addTagField = () => setTags([...tags, ""]);
 
+  const handlePairChange = (index: number, position: 0 | 1, value: string) => {
+    const updatedPairs = [...pairs];
+    updatedPairs[index][position] = value;
+    setPairs(updatedPairs);
+  };
+
+  const addPairField = () => setPairs([...pairs, ["", ""]]);
+
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
-      await api.post("/questions", {
+      let payload: any = {
         lesson_id: lessonId,
         question_text: questionText,
         question_type: questionType,
-        answer,
+        image_url: imageUrl || undefined,
+        audio_url: audioUrl || undefined,
         explanation,
-        options,
         tags,
-      });
+      };
+
+      if (questionType === "multiple_choice" || questionType === "true_false") {
+        payload.options = options;
+        payload.answer = answer; // only send answer if needed
+      }
+
+      if (questionType === "matching_pairs") {
+        payload.pairs = pairs;
+      }
+
+      await api.post("/questions", payload);
 
       alert("Question created successfully!");
       setQuestionCount((prev) => prev + 1);
@@ -75,9 +99,28 @@ export default function CreateQuestionsPage() {
       setExplanation("");
       setOptions(["", "", "", ""]);
       setTags([]);
+      setPairs([]);
+      setImageUrl("");
+      setAudioUrl("");
     } catch (error) {
       console.error("Failed to create question:", error);
       alert("Failed to create question. Check console for details.");
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const tempUrl = URL.createObjectURL(file);
+      setImageUrl(tempUrl);
+    }
+  };
+
+  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const tempUrl = URL.createObjectURL(file);
+      setAudioUrl(tempUrl);
     }
   };
 
@@ -118,20 +161,73 @@ export default function CreateQuestionsPage() {
           >
             <option value="multiple_choice">Multiple Choice</option>
             <option value="true_false">True/False</option>
+            <option value="matching_pairs">Matching Pairs</option>
           </select>
         </div>
 
+        {/* Dynamic Section based on Question Type */}
+        {questionType === "multiple_choice" && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Options</label>
+            {options.map((option, idx) => (
+              <Input
+                key={idx}
+                value={option}
+                onChange={(e) => handleOptionChange(idx, e.target.value)}
+                placeholder={`Option ${idx + 1}`}
+                required
+                className="mb-2"
+              />
+            ))}
+          </div>
+        )}
+
+        {questionType === "true_false" && (
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <p className="text-sm">Options are fixed: True and False</p>
+          </div>
+        )}
+
+        {questionType === "matching_pairs" && (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Matching Pairs
+            </label>
+            {pairs.map((pair, idx) => (
+              <div key={idx} className="flex gap-4 mb-2">
+                <Input
+                  placeholder="Left side (e.g., 1 2 3 4)"
+                  value={pair[0]}
+                  onChange={(e) => handlePairChange(idx, 0, e.target.value)}
+                  required
+                />
+                <Input
+                  placeholder="Right side (e.g., q_q_q_q.png)"
+                  value={pair[1]}
+                  onChange={(e) => handlePairChange(idx, 1, e.target.value)}
+                  required
+                />
+              </div>
+            ))}
+            <Button type="button" onClick={addPairField} className="mt-2">
+              Add Pair
+            </Button>
+          </div>
+        )}
+
         {/* Correct Answer */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Correct Answer
-          </label>
-          <Input
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            required
-          />
-        </div>
+        {questionType !== "matching_pairs" && (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Correct Answer
+            </label>
+            <Input
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              required
+            />
+          </div>
+        )}
 
         {/* Explanation */}
         <div>
@@ -142,21 +238,6 @@ export default function CreateQuestionsPage() {
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
           />
-        </div>
-
-        {/* Options */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Options</label>
-          {options.map((option, idx) => (
-            <Input
-              key={idx}
-              value={option}
-              onChange={(e) => handleOptionChange(idx, e.target.value)}
-              placeholder={`Option ${idx + 1}`}
-              required
-              className="mb-2"
-            />
-          ))}
         </div>
 
         {/* Tags */}
@@ -176,6 +257,35 @@ export default function CreateQuestionsPage() {
           <Button type="button" onClick={addTagField} className="mt-2">
             Add Tag
           </Button>
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Upload Image (optional)
+          </label>
+          <Input type="file" accept="image/*" onChange={handleImageChange} />
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt="Preview"
+              className="mt-4 max-h-48 rounded-lg"
+            />
+          )}
+        </div>
+
+        {/* Audio Upload */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Upload Audio (optional)
+          </label>
+          <Input type="file" accept="audio/*" onChange={handleAudioChange} />
+          {audioUrl && (
+            <audio controls className="mt-4">
+              <source src={audioUrl} />
+              Your browser does not support the audio element.
+            </audio>
+          )}
         </div>
 
         {/* Submit */}
