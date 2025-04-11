@@ -62,7 +62,13 @@ export default function CreateQuestionsPage() {
     setPairs(updatedPairs);
   };
 
-  const addPairField = () => setPairs([...pairs, ["", ""]]);
+  const addPairField = () => {
+    if (pairs.length >= 8) {
+      alert("You can only add up to 8 matching pairs.");
+      return;
+    }
+    setPairs([...pairs, ["", ""]]);
+  };
 
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +96,7 @@ export default function CreateQuestionsPage() {
 
       if (questionType === "matching_pairs") {
         payload.pairs = pairs;
+        payload.answer = ""; // ✅ IMPORTANT: Send empty answer for matching_pairs
       }
 
       await api.post("/questions", payload);
