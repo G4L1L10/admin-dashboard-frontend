@@ -16,7 +16,9 @@ export default function HomePage() {
       <p className="text-gray-600 text-lg mb-8">
         Manage your users, projects, analytics, and settings seamlessly.
       </p>
-      <Button onClick={() => router.push("/admin")}>Go to Admin</Button>
+      <Button onClick={() => router.push("/admin/dashboard")}>
+        Go to Admin
+      </Button>
     </div>
   );
 }
