@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import "@/styles/globals.css";
+import { Toaster } from "sonner";
 
 export const metadata = {
   title: "Bandroom",

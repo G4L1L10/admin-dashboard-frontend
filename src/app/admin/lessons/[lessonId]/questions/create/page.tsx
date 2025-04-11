@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,7 +102,8 @@ export default function CreateQuestionsPage() {
 
       await api.post("/questions", payload);
 
-      alert("Question created successfully!");
+      toast.success("Question created successfully!");
+
       setQuestionCount((prev) => prev + 1);
 
       // Clear form
@@ -116,7 +118,7 @@ export default function CreateQuestionsPage() {
       setAudioUrl("");
     } catch (error) {
       console.error("Failed to create question:", error);
-      alert("Failed to create question. Check console for details.");
+      toast.error("Failed to create question. Check console for details.");
     }
   };
 

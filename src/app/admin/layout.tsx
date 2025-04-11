@@ -2,6 +2,7 @@
 import "@/styles/globals.css";
 import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
+import { Toaster } from "sonner"; // ✅ Import Toaster
 
 export const metadata = {
   title: "Bandroom Admin Dashboard",
@@ -26,6 +27,9 @@ export default function AdminLayout({
         {/* Page Content */}
         <main className="flex-1 p-6">{children}</main>
       </div>
+
+      {/* ✅ Toast Notifications */}
+      <Toaster richColors position="top-right" />
     </div>
   );
 }
