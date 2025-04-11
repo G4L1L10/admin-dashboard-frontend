@@ -78,9 +78,14 @@ export default function CreateQuestionsPage() {
         tags,
       };
 
-      if (questionType === "multiple_choice" || questionType === "true_false") {
+      if (questionType === "multiple_choice") {
         payload.options = options;
-        payload.answer = answer; // only send answer if needed
+        payload.answer = answer;
+      }
+
+      if (questionType === "true_false") {
+        payload.options = ["True", "False"];
+        payload.answer = answer;
       }
 
       if (questionType === "matching_pairs") {
@@ -221,11 +226,24 @@ export default function CreateQuestionsPage() {
             <label className="block text-sm font-medium mb-1">
               Correct Answer
             </label>
-            <Input
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              required
-            />
+            {questionType === "true_false" ? (
+              <select
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                className="w-full border-gray-300 rounded-md shadow-sm"
+                required
+              >
+                <option value="">Select Answer</option>
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+            ) : (
+              <Input
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                required
+              />
+            )}
           </div>
         )}
 
