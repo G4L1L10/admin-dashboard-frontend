@@ -85,7 +85,10 @@ export default function CreateQuestionsPage() {
         tags,
       };
 
-      if (questionType === "multiple_choice") {
+      if (
+        questionType === "multiple_choice" ||
+        questionType === "listen_and_match"
+      ) {
         payload.options = options;
         payload.answer = answer;
       }
@@ -97,13 +100,12 @@ export default function CreateQuestionsPage() {
 
       if (questionType === "matching_pairs") {
         payload.pairs = pairs;
-        payload.answer = ""; // ✅ IMPORTANT: Send empty answer for matching_pairs
+        payload.answer = ""; // ✅ Important for matching pairs
       }
 
       await api.post("/questions", payload);
 
       toast.success("Question created successfully!");
-
       setQuestionCount((prev) => prev + 1);
 
       // Clear form
@@ -176,11 +178,14 @@ export default function CreateQuestionsPage() {
             <option value="multiple_choice">Multiple Choice</option>
             <option value="true_false">True/False</option>
             <option value="matching_pairs">Matching Pairs</option>
+            <option value="listen_and_match">Listen and Match</option>{" "}
+            {/* ✅ New type */}
           </select>
         </div>
 
         {/* Dynamic Section based on Question Type */}
-        {questionType === "multiple_choice" && (
+        {(questionType === "multiple_choice" ||
+          questionType === "listen_and_match") && (
           <div>
             <label className="block text-sm font-medium mb-1">Options</label>
             {options.map((option, idx) => (
