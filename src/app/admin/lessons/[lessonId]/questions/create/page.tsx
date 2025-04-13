@@ -19,10 +19,11 @@ export default function CreateQuestionsPage() {
   const [explanation, setExplanation] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [pairs, setPairs] = useState<[string, string][]>([]);
+  const [correctPairs, setCorrectPairs] = useState<[string, string][]>([]);
   const [questionCount, setQuestionCount] = useState(1);
 
-  const [options, setOptions] = useState<string[]>(["", "", "", ""]); // Text for MCQ
-  const [imageOptions, setImageOptions] = useState<string[]>(["", "", "", ""]); // Image URLs for Listen and Match
+  const [options, setOptions] = useState<string[]>(["", "", "", ""]);
+  const [imageOptions, setImageOptions] = useState<string[]>(["", "", "", ""]);
 
   const [imageUrl, setImageUrl] = useState<string>("");
   const [audioUrl, setAudioUrl] = useState<string>("");
@@ -78,12 +79,23 @@ export default function CreateQuestionsPage() {
     setPairs(updatedPairs);
   };
 
+  const handleCorrectPairChange = (
+    index: number,
+    position: 0 | 1,
+    value: string,
+  ) => {
+    const updatedCorrectPairs = [...correctPairs];
+    updatedCorrectPairs[index][position] = value;
+    setCorrectPairs(updatedCorrectPairs);
+  };
+
   const addPairField = () => {
     if (pairs.length >= 8) {
       alert("You can only add up to 8 matching pairs.");
       return;
     }
     setPairs([...pairs, ["", ""]]);
+    setCorrectPairs([...correctPairs, ["", ""]]);
   };
 
   const handleCreateQuestion = async (e: React.FormEvent) => {
@@ -107,7 +119,7 @@ export default function CreateQuestionsPage() {
 
       if (questionType === "listen_and_match") {
         payload.options = imageOptions.map((url) => ({ imageUrl: url }));
-        payload.answer = answer; // index
+        payload.answer = answer;
         payload.audio_url = audioUrl || undefined;
       }
 
@@ -120,7 +132,7 @@ export default function CreateQuestionsPage() {
 
       if (questionType === "matching_pairs") {
         payload.pairs = pairs;
-        payload.answer = ""; // matching pairs don't need direct answer
+        payload.answer = JSON.stringify(correctPairs); // ✅ FIXED
         payload.image_url = imageUrl || undefined;
         payload.audio_url = audioUrl || undefined;
       }
@@ -137,6 +149,7 @@ export default function CreateQuestionsPage() {
       setExplanation("");
       setTags([]);
       setPairs([]);
+      setCorrectPairs([]);
       setOptions(["", "", "", ""]);
       setImageOptions(["", "", "", ""]);
       setImageUrl("");
@@ -207,7 +220,7 @@ export default function CreateQuestionsPage() {
           </select>
         </div>
 
-        {/* Dynamic Form Section */}
+        {/* Dynamic Form Sections */}
         {questionType === "multiple_choice" && (
           <div>
             <label className="block text-sm font-medium mb-1">Options</label>
@@ -250,69 +263,99 @@ export default function CreateQuestionsPage() {
         )}
 
         {questionType === "matching_pairs" && (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Matching Pairs
-            </label>
-            {pairs.map((pair, idx) => (
-              <div key={idx} className="flex gap-4 mb-2">
-                <Input
-                  placeholder="Left side"
-                  value={pair[0]}
-                  onChange={(e) => handlePairChange(idx, 0, e.target.value)}
-                  required
-                />
-                <Input
-                  placeholder="Right side"
-                  value={pair[1]}
-                  onChange={(e) => handlePairChange(idx, 1, e.target.value)}
-                  required
-                />
-              </div>
-            ))}
-            <Button type="button" onClick={addPairField} className="mt-2">
-              Add Pair
-            </Button>
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Matching Pairs (Options)
+              </label>
+              {pairs.map((pair, idx) => (
+                <div key={idx} className="flex gap-4 mb-2">
+                  <Input
+                    placeholder="Left side"
+                    value={pair[0]}
+                    onChange={(e) => handlePairChange(idx, 0, e.target.value)}
+                    required
+                  />
+                  <Input
+                    placeholder="Right side"
+                    value={pair[1]}
+                    onChange={(e) => handlePairChange(idx, 1, e.target.value)}
+                    required
+                  />
+                </div>
+              ))}
+              <Button type="button" onClick={addPairField} className="mt-2">
+                Add Pair
+              </Button>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 mt-6">
+                Correct Matching (Answer)
+              </label>
+              {correctPairs.map((pair, idx) => (
+                <div key={idx} className="flex gap-4 mb-2">
+                  <Input
+                    placeholder="Left side (Correct)"
+                    value={pair[0]}
+                    onChange={(e) =>
+                      handleCorrectPairChange(idx, 0, e.target.value)
+                    }
+                    required
+                  />
+                  <Input
+                    placeholder="Right side (Correct)"
+                    value={pair[1]}
+                    onChange={(e) =>
+                      handleCorrectPairChange(idx, 1, e.target.value)
+                    }
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
-        {/* Correct Answer */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Correct Answer
-          </label>
-          {isListenAndMatch ? (
-            <select
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              className="w-full border-gray-300 rounded-md shadow-sm"
-              required
-            >
-              <option value="">Select Correct Image</option>
-              <option value="0">Option 1</option>
-              <option value="1">Option 2</option>
-              <option value="2">Option 3</option>
-              <option value="3">Option 4</option>
-            </select>
-          ) : questionType === "true_false" ? (
-            <select
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              className="w-full border-gray-300 rounded-md shadow-sm"
-              required
-            >
-              <option value="">Select Answer</option>
-              <option value="True">True</option>
-              <option value="False">False</option>
-            </select>
-          ) : (
-            <Input
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              required
-            />
-          )}
-        </div>
+        {/* Correct Answer for other types */}
+        {!questionType.includes("matching_pairs") && (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Correct Answer
+            </label>
+            {isListenAndMatch ? (
+              <select
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                className="w-full border-gray-300 rounded-md shadow-sm"
+                required
+              >
+                <option value="">Select Correct Image</option>
+                <option value="0">Option 1</option>
+                <option value="1">Option 2</option>
+                <option value="2">Option 3</option>
+                <option value="3">Option 4</option>
+              </select>
+            ) : questionType === "true_false" ? (
+              <select
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                className="w-full border-gray-300 rounded-md shadow-sm"
+                required
+              >
+                <option value="">Select Answer</option>
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+            ) : (
+              <Input
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                required
+              />
+            )}
+          </div>
+        )}
 
         {/* Explanation */}
         <div>
@@ -344,7 +387,7 @@ export default function CreateQuestionsPage() {
           </Button>
         </div>
 
-        {/* Bottom Uploads */}
+        {/* Upload Image/Audio for non-Listen-and-Match */}
         {!isListenAndMatch && (
           <>
             <div>
