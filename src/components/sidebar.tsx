@@ -5,6 +5,7 @@ import Link from "next/link";
 
 const navItems = [
   { name: "Dashboard", href: "/admin/dashboard" },
+  { name: "Syllabus", href: "/admin/syllabus" },
   { name: "Users", href: "/admin/users" },
   { name: "Projects", href: "/admin/projects" },
   { name: "Analytics", href: "/admin/analytics" },
