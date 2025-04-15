@@ -63,47 +63,73 @@ export default function EditQuestionPage() {
 
       <form onSubmit={handleUpdateQuestion} className="flex flex-col gap-6">
         {/* Question Text */}
-        <Textarea
-          value={questionData.question_text}
-          onChange={(e) =>
-            setQuestionData({ ...questionData, question_text: e.target.value })
-          }
-          placeholder="Question Text"
-          required
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Question Text
+          </label>
+          <Textarea
+            value={questionData.question_text}
+            onChange={(e) =>
+              setQuestionData({
+                ...questionData,
+                question_text: e.target.value,
+              })
+            }
+            placeholder="Enter the question here"
+            required
+          />
+        </div>
 
         {/* Question Type */}
-        <select
-          className="border rounded-md p-2"
-          value={questionData.question_type}
-          onChange={(e) =>
-            setQuestionData({ ...questionData, question_type: e.target.value })
-          }
-        >
-          <option value="multiple_choice">Multiple Choice</option>
-          <option value="true_false">True/False</option>
-          <option value="matching_pairs">Matching Pairs</option>
-          <option value="listen_and_match">Listen and Match</option>
-        </select>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Question Type
+          </label>
+          <select
+            className="w-full border-gray-300 rounded-md shadow-sm"
+            value={questionData.question_type}
+            onChange={(e) =>
+              setQuestionData({
+                ...questionData,
+                question_type: e.target.value,
+              })
+            }
+          >
+            <option value="multiple_choice">Multiple Choice</option>
+            <option value="true_false">True/False</option>
+            <option value="matching_pairs">Matching Pairs</option>
+            <option value="listen_and_match">Listen and Match</option>
+          </select>
+        </div>
 
         {/* Correct Answer */}
-        <Input
-          value={questionData.answer}
-          onChange={(e) =>
-            setQuestionData({ ...questionData, answer: e.target.value })
-          }
-          placeholder="Correct Answer"
-          required
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Correct Answer
+          </label>
+          <Input
+            value={questionData.answer}
+            onChange={(e) =>
+              setQuestionData({ ...questionData, answer: e.target.value })
+            }
+            placeholder="Correct Answer"
+            required
+          />
+        </div>
 
         {/* Explanation */}
-        <Textarea
-          value={questionData.explanation}
-          onChange={(e) =>
-            setQuestionData({ ...questionData, explanation: e.target.value })
-          }
-          placeholder="Explanation (optional)"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Explanation (optional)
+          </label>
+          <Textarea
+            value={questionData.explanation}
+            onChange={(e) =>
+              setQuestionData({ ...questionData, explanation: e.target.value })
+            }
+            placeholder="Add an explanation if needed"
+          />
+        </div>
 
         {/* Submit */}
         <div className="flex justify-end">
