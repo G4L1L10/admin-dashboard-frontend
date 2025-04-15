@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Loader2, Trash2, Pencil } from "lucide-react"; // Icons
+import { Loader2, Trash2, Pencil, Eye } from "lucide-react"; // Icons
 import api from "@/lib/api"; // Axios instance
 import { toast } from "sonner";
 
@@ -23,10 +24,12 @@ export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
+
   async function fetchCourses() {
     setLoading(true);
     try {
-      const res = await api.get("/courses"); // ✅ This hits GET /api/courses now
+      const res = await api.get("/courses");
       setCourses(res.data);
     } catch (error) {
       console.error(error);
@@ -37,7 +40,7 @@ export default function CoursesPage() {
   }
 
   useEffect(() => {
-    fetchCourses(); // Load on page mount
+    fetchCourses();
   }, []);
 
   return (
@@ -59,11 +62,29 @@ export default function CoursesPage() {
               <p className="text-gray-600">{course.description}</p>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
-              <Button variant="outline" size="sm">
+              <Button
+                size="sm"
+                className="bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200"
+                onClick={() => router.push(`/admin/courses/${course.id}`)}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View
+              </Button>
+
+              <Button
+                size="sm"
+                className="bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
+                onClick={() => router.push(`/admin/courses/${course.id}/edit`)}
+              >
                 <Pencil className="h-4 w-4 mr-2" />
                 Edit
               </Button>
-              <Button variant="destructive" size="sm">
+
+              <Button
+                variant="destructive"
+                size="sm"
+                className="hover:bg-red-600 transition-colors duration-200"
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </Button>
