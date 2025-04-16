@@ -16,20 +16,33 @@ export default function EditQuestionPage() {
   const [questionData, setQuestionData] = useState({
     question_text: "",
     question_type: "multiple_choice",
-    answer: "",
     explanation: "",
   });
+  const [answer, setAnswer] = useState("");
+  const [pairs, setPairs] = useState<[string, string][]>([]);
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchQuestion() {
       try {
         const res = await api.get(`/questions/${questionId}`);
-        setQuestionData({
-          question_text: res.data.question_text,
-          question_type: res.data.question_type,
-          answer: res.data.answer,
-          explanation: res.data.explanation,
-        });
+        const { question_text, question_type, answer, explanation, tags } =
+          res.data;
+
+        setQuestionData({ question_text, question_type, explanation });
+
+        if (question_type === "matching_pairs") {
+          try {
+            const parsedPairs = JSON.parse(answer);
+            setPairs(parsedPairs);
+          } catch {
+            setPairs([]);
+          }
+        } else {
+          setAnswer(answer);
+        }
+
+        setTags(tags ?? []);
       } catch (error) {
         console.error("Failed to fetch question", error);
         toast.error("Failed to load question");
@@ -43,14 +56,56 @@ export default function EditQuestionPage() {
 
   const handleUpdateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
-      await api.put(`/questions/${questionId}`, questionData);
+      const payload = {
+        ...questionData,
+        answer:
+          questionData.question_type === "matching_pairs"
+            ? JSON.stringify(pairs)
+            : answer,
+        tags: tags.filter((tag) => tag.trim() !== ""),
+      };
+
+      await api.put(`/questions/${questionId}`, payload);
       toast.success("Question updated!");
-      router.back(); // Go back to lesson page
+      router.back();
     } catch (error) {
       console.error(error);
       toast.error("Failed to update question");
     }
+  };
+
+  const handlePairChange = (index: number, position: 0 | 1, value: string) => {
+    const updated = [...pairs];
+    updated[index][position] = value;
+    setPairs(updated);
+  };
+
+  const addPair = () => {
+    setPairs([...pairs, ["", ""]]);
+  };
+
+  const removePair = (index: number) => {
+    const updated = [...pairs];
+    updated.splice(index, 1);
+    setPairs(updated);
+  };
+
+  const handleTagChange = (index: number, value: string) => {
+    const updated = [...tags];
+    updated[index] = value;
+    setTags(updated);
+  };
+
+  const addTagField = () => {
+    setTags([...tags, ""]);
+  };
+
+  const removeTag = (index: number) => {
+    const updated = [...tags];
+    updated.splice(index, 1);
+    setTags(updated);
   };
 
   if (loading) {
@@ -102,20 +157,50 @@ export default function EditQuestionPage() {
           </select>
         </div>
 
-        {/* Correct Answer */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Correct Answer
-          </label>
-          <Input
-            value={questionData.answer}
-            onChange={(e) =>
-              setQuestionData({ ...questionData, answer: e.target.value })
-            }
-            placeholder="Correct Answer"
-            required
-          />
-        </div>
+        {/* Correct Answer or Matching Pairs */}
+        {questionData.question_type === "matching_pairs" ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Matching Pairs
+            </label>
+            {pairs.map((pair, idx) => (
+              <div key={idx} className="flex gap-2 mb-2">
+                <Input
+                  placeholder="Left"
+                  value={pair[0]}
+                  onChange={(e) => handlePairChange(idx, 0, e.target.value)}
+                />
+                <Input
+                  placeholder="Right"
+                  value={pair[1]}
+                  onChange={(e) => handlePairChange(idx, 1, e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => removePair(idx)}
+                  className="text-sm text-red-500 hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <Button type="button" onClick={addPair} className="mt-2">
+              Add Pair
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Correct Answer
+            </label>
+            <Input
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Correct Answer"
+              required
+            />
+          </div>
+        )}
 
         {/* Explanation */}
         <div>
@@ -129,6 +214,37 @@ export default function EditQuestionPage() {
             }
             placeholder="Add an explanation if needed"
           />
+        </div>
+
+        {/* Tags */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tags (optional)
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag, idx) => (
+              <div
+                key={idx}
+                className="flex items-center bg-gray-100 border rounded px-2 py-1"
+              >
+                <Input
+                  value={tag}
+                  onChange={(e) => handleTagChange(idx, e.target.value)}
+                  className="w-24 border-none p-0 bg-transparent text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeTag(idx)}
+                  className="ml-1 text-sm text-gray-500 hover:text-red-500"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+          <Button type="button" onClick={addTagField} className="mt-2">
+            Add Tag
+          </Button>
         </div>
 
         {/* Submit */}
