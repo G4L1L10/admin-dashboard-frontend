@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -13,23 +14,40 @@ export default function EditQuestionPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
+
   const [questionData, setQuestionData] = useState({
     question_text: "",
     question_type: "multiple_choice",
     explanation: "",
+    lesson_id: "",
   });
+
+  const [lessonTitle, setLessonTitle] = useState("");
+  const [courseTitle, setCourseTitle] = useState("");
+
   const [answer, setAnswer] = useState("");
   const [pairs, setPairs] = useState<[string, string][]>([]);
   const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
-    async function fetchQuestion() {
+    async function fetchQuestionContext() {
       try {
-        const res = await api.get(`/questions/${questionId}`);
-        const { question_text, question_type, answer, explanation, tags } =
-          res.data;
+        const qRes = await api.get(`/questions/${questionId}`);
+        const {
+          question_text,
+          question_type,
+          answer,
+          explanation,
+          tags,
+          lesson_id,
+        } = qRes.data;
 
-        setQuestionData({ question_text, question_type, explanation });
+        setQuestionData({
+          question_text,
+          question_type,
+          explanation,
+          lesson_id,
+        });
 
         if (question_type === "matching_pairs") {
           try {
@@ -43,15 +61,21 @@ export default function EditQuestionPage() {
         }
 
         setTags(tags ?? []);
+
+        const lessonRes = await api.get(`/lessons/detail/${lesson_id}`);
+        setLessonTitle(lessonRes.data.title);
+
+        const courseRes = await api.get(`/courses/${lessonRes.data.course_id}`);
+        setCourseTitle(courseRes.data.title);
       } catch (error) {
-        console.error("Failed to fetch question", error);
-        toast.error("Failed to load question");
+        console.error("Failed to fetch question context", error);
+        toast.error("Failed to load question details");
       } finally {
         setLoading(false);
       }
     }
 
-    if (questionId) fetchQuestion();
+    if (questionId) fetchQuestionContext();
   }, [questionId]);
 
   const handleUpdateQuestion = async (e: React.FormEvent) => {
@@ -82,9 +106,7 @@ export default function EditQuestionPage() {
     setPairs(updated);
   };
 
-  const addPair = () => {
-    setPairs([...pairs, ["", ""]]);
-  };
+  const addPair = () => setPairs([...pairs, ["", ""]]);
 
   const removePair = (index: number) => {
     const updated = [...pairs];
@@ -98,9 +120,7 @@ export default function EditQuestionPage() {
     setTags(updated);
   };
 
-  const addTagField = () => {
-    setTags([...tags, ""]);
-  };
+  const addTagField = () => setTags([...tags, ""]);
 
   const removeTag = (index: number) => {
     const updated = [...tags];
@@ -113,10 +133,26 @@ export default function EditQuestionPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6">Edit Question</h1>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Header in Card format */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+          <div>
+            <CardTitle className="text-2xl">Edit Question</CardTitle>
+            <p className="text-gray-600 mt-1">
+              <span className="font-semibold">Course:</span> {courseTitle}
+              <br />
+              <span className="font-semibold">Lesson:</span> {lessonTitle}
+            </p>
+          </div>
+        </CardHeader>
+      </Card>
 
-      <form onSubmit={handleUpdateQuestion} className="flex flex-col gap-6">
+      {/* Edit Form */}
+      <form
+        onSubmit={handleUpdateQuestion}
+        className="flex flex-col gap-6 bg-white p-6 rounded-lg shadow-md"
+      >
         {/* Question Text */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -130,7 +166,6 @@ export default function EditQuestionPage() {
                 question_text: e.target.value,
               })
             }
-            placeholder="Enter the question here"
             required
           />
         </div>
@@ -157,7 +192,7 @@ export default function EditQuestionPage() {
           </select>
         </div>
 
-        {/* Correct Answer or Matching Pairs */}
+        {/* Answer or Matching Pairs */}
         {questionData.question_type === "matching_pairs" ? (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -196,7 +231,6 @@ export default function EditQuestionPage() {
             <Input
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Correct Answer"
               required
             />
           </div>
@@ -212,7 +246,6 @@ export default function EditQuestionPage() {
             onChange={(e) =>
               setQuestionData({ ...questionData, explanation: e.target.value })
             }
-            placeholder="Add an explanation if needed"
           />
         </div>
 
@@ -247,8 +280,11 @@ export default function EditQuestionPage() {
           </Button>
         </div>
 
-        {/* Submit */}
-        <div className="flex justify-end">
+        {/* Submit + Cancel */}
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
           <Button type="submit">Update Question</Button>
         </div>
       </form>

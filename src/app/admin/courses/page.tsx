@@ -58,19 +58,27 @@ export default function CoursesPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Courses</h1>
-        <div className="flex gap-3">
-          <Button onClick={() => router.push("/admin/courses/create")}>
-            Create New Course
-          </Button>
-          <Button onClick={fetchCourses}>
-            {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "Refresh"}
-          </Button>
-        </div>
-      </div>
+    <div className="flex flex-col gap-10">
+      {/* Header / Page Actions */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <h1 className="text-2xl font-bold">All Courses</h1>
+          <div className="flex gap-3">
+            <Button onClick={() => router.push("/admin/courses/create")}>
+              Create New
+            </Button>
+            <Button variant="outline" onClick={fetchCourses}>
+              {loading ? (
+                <Loader2 className="animate-spin h-4 w-4" />
+              ) : (
+                "Refresh"
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
+      {/* Courses Grid */}
       {Array.isArray(courses) && courses.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
@@ -84,16 +92,14 @@ export default function CoursesPage() {
               <CardFooter className="flex justify-end gap-2">
                 <Button
                   size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200"
+                  variant="secondary"
                   onClick={() => router.push(`/admin/courses/${course.id}`)}
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   View
                 </Button>
-
                 <Button
                   size="sm"
-                  className="bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
                   onClick={() =>
                     router.push(`/admin/courses/${course.id}/edit`)
                   }
@@ -101,11 +107,9 @@ export default function CoursesPage() {
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
-
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="hover:bg-red-600 transition-colors duration-200"
                   onClick={() => handleDelete(course.id)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -116,9 +120,9 @@ export default function CoursesPage() {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500">
+        <div className="text-center py-16 text-gray-500">
           No courses found. Create one to get started!
-        </p>
+        </div>
       )}
     </div>
   );

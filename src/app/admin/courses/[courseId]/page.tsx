@@ -1,4 +1,3 @@
-// src/app/admin/courses/[courseId]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,9 +9,10 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Loader2, Pencil, ListChecks } from "lucide-react"; // Icons
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Pencil, ListChecks, BookOpen } from "lucide-react";
 import { toast } from "sonner";
-import api from "@/lib/api"; // Your axios instance
+import api from "@/lib/api";
 
 interface Lesson {
   id: string;
@@ -41,7 +41,6 @@ export default function CourseDetailsPage() {
         });
 
         const lessonsRes = await api.get(`/lessons/by-course/${courseId}`);
-        console.log("LESSONS RESPONSE", lessonsRes.data); // 👈 Debug log
         setLessons(Array.isArray(lessonsRes.data) ? lessonsRes.data : []);
       } catch (error) {
         console.error(error);
@@ -65,32 +64,46 @@ export default function CourseDetailsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Top Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">{course.title}</h1>
-          <p className="text-gray-600 mt-2">{course.description}</p>
-        </div>
-        <div className="flex gap-4">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/admin/courses/${courseId}/edit`)}
-          >
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit Course
-          </Button>
-          <Button
-            onClick={() =>
-              router.push(`/admin/courses/${courseId}/lessons/create`)
-            }
-          >
-            Add Lesson
-          </Button>
-        </div>
-      </div>
+    <div className="flex flex-col gap-10">
+      {/* Course Info Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between">
+          <div>
+            <Badge variant="secondary" className="mb-2">
+              Course
+            </Badge>
+            <h1 className="text-2xl font-bold">{course.title}</h1>
+            <p className="text-gray-600 mt-1">{course.description}</p>
+          </div>
 
-      {/* Lessons */}
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-1">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/admin/courses")}
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              All Courses
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/admin/courses/${courseId}/edit`)}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit Course
+            </Button>
+            <Button
+              onClick={() =>
+                router.push(`/admin/courses/${courseId}/lessons/create`)
+              }
+            >
+              Add Lesson
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Lessons Section */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Lessons</h2>
 
@@ -117,7 +130,7 @@ export default function CourseDetailsPage() {
                     }
                   >
                     <Pencil className="h-4 w-4 mr-2" />
-                    Edit Lesson
+                    Edit
                   </Button>
                   <Button
                     size="sm"
@@ -128,7 +141,7 @@ export default function CourseDetailsPage() {
                     }
                   >
                     <ListChecks className="h-4 w-4 mr-2" />
-                    Manage Questions
+                    Questions
                   </Button>
                 </CardFooter>
               </Card>

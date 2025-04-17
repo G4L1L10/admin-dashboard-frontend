@@ -3,19 +3,33 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Tag } from "lucide-react";
 
 interface Question {
   id: string;
   question_text: string;
   question_type: string;
+  options: string[];
+  answer: string;
+  explanation: string;
+  image_url?: string;
+  audio_url?: string;
+  tags: string[];
 }
 
 export default function QuestionsPage() {
   const { courseId, lessonId } = useParams();
   const router = useRouter();
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [lessonTitle, setLessonTitle] = useState("");
   const [courseTitle, setCourseTitle] = useState("");
@@ -28,7 +42,6 @@ export default function QuestionsPage() {
     } catch (error) {
       console.error(error);
       toast.error("Failed to load questions");
-      setQuestions([]);
     } finally {
       setLoading(false);
     }
@@ -63,7 +76,7 @@ export default function QuestionsPage() {
     try {
       await api.delete(`/questions/${questionId}`);
       toast.success("Question deleted!");
-      fetchQuestions(); // refresh the list
+      fetchQuestions();
     } catch (error) {
       console.error("Failed to delete question:", error);
       toast.error("Failed to delete question.");
@@ -71,21 +84,18 @@ export default function QuestionsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <div className="flex justify-between items-start flex-wrap gap-4 mb-6">
-        {/* Left: Metadata */}
-        <div className="text-gray-700">
-          <p className="text-base sm:text-lg">
-            <span className="font-semibold">Course:</span> {courseTitle}
-          </p>
-          <p className="text-base sm:text-lg">
-            <span className="font-semibold">Lesson:</span> {lessonTitle}
-          </p>
-        </div>
-
-        {/* Right: Header + Action */}
-        <div className="flex flex-col items-end gap-2">
-          <h1 className="text-xl sm:text-2xl font-bold">Questions</h1>
+    <div className="max-w-5xl mx-auto p-6 space-y-10">
+      {/* Header + Metadata */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+          <div>
+            <CardTitle className="text-2xl">All Questions</CardTitle>
+            <p className="text-gray-600 mt-5">
+              <span className="font-semibold">Course:</span> {courseTitle}{" "}
+              <br />
+              <span className="font-semibold">Lesson:</span> {lessonTitle}
+            </p>
+          </div>
           <Button
             onClick={() =>
               router.push(
@@ -95,50 +105,134 @@ export default function QuestionsPage() {
           >
             Create Question
           </Button>
-        </div>
-      </div>
+        </CardHeader>
+      </Card>
 
+      {/* Question List */}
       {loading ? (
         <p>Loading questions...</p>
       ) : questions.length === 0 ? (
         <p className="text-gray-500">No questions yet for this lesson.</p>
       ) : (
-        <ul className="space-y-4">
+        <div className="space-y-4">
           {questions.map((q) => (
-            <li key={q.id} className="border rounded p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{q.question_text}</p>
-                  <p className="text-sm text-gray-500">{q.question_type}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className="bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
-                    onClick={() =>
-                      router.push(
-                        `/admin/courses/${courseId}/lessons/${lessonId}/questions/${q.id}/edit`,
-                      )
-                    }
-                  >
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
+            <Card key={q.id}>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold mb-1">
+                  {q.question_text}
+                </CardTitle>
+                <p className="text-sm text-gray-500 capitalize">
+                  {q.question_type}
+                </p>
+              </CardHeader>
 
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="hover:bg-red-600 transition-colors duration-200"
-                    onClick={() => handleDeleteQuestion(q.id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            </li>
+              <CardContent className="space-y-3 text-sm text-gray-700">
+                {/* Options */}
+                {q.options?.length > 0 && (
+                  <div>
+                    <p className="font-medium">Options:</p>
+                    {q.question_type === "matching_pairs" ? (
+                      <ul className="list-disc pl-4">
+                        {q.options.map((opt, i) => (
+                          <li key={i}>
+                            {opt.replace("::", "⇄").replace("::", "⇄")}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <ul className="list-disc pl-4">
+                        {q.options.map((opt, i) => (
+                          <li key={i}>{opt}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {/* Answer */}
+                {q.answer && (
+                  <p>
+                    <span className="font-medium">Answer:</span>{" "}
+                    <span className="text-gray-800">{q.answer}</span>
+                  </p>
+                )}
+
+                {/* Explanation */}
+                {q.explanation && (
+                  <p>
+                    <span className="font-medium">Explanation:</span>{" "}
+                    {q.explanation}
+                  </p>
+                )}
+
+                {/* Image */}
+                {q.image_url && (
+                  <div>
+                    <p className="font-medium mb-1">Image:</p>
+                    <img
+                      src={q.image_url}
+                      alt="question"
+                      className="max-w-xs rounded-lg border"
+                    />
+                  </div>
+                )}
+
+                {/* Audio */}
+                {q.audio_url && (
+                  <div>
+                    <p className="font-medium mb-1">Audio:</p>
+                    <audio controls className="w-full">
+                      <source src={q.audio_url} />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                )}
+
+                {/* Tags */}
+                {q.tags?.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mt-2">
+                      <Tag className="w-4 h-4" />
+                      Tags:
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {q.tags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+
+              <CardFooter className="flex justify-end gap-2">
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    router.push(
+                      `/admin/courses/${courseId}/lessons/${lessonId}/questions/${q.id}/edit`,
+                    )
+                  }
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDeleteQuestion(q.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </CardFooter>
+            </Card>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

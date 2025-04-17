@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -13,6 +14,7 @@ export default function EditLessonPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
+  const [courseTitle, setCourseTitle] = useState("");
 
   const [lessonData, setLessonData] = useState({
     id: "",
@@ -26,28 +28,33 @@ export default function EditLessonPage() {
   });
 
   useEffect(() => {
-    async function fetchLesson() {
+    async function fetchLessonAndCourse() {
       try {
         const res = await api.get(`/lessons/detail/${lessonId}`);
+        const lesson = res.data;
+
         setLessonData({
           id: lessonId as string,
-          course_id: res.data.course_id,
-          title: res.data.title,
-          description: res.data.description,
-          unit: res.data.unit,
-          difficulty: res.data.difficulty,
-          xp_reward: res.data.xp_reward,
-          crowns_reward: res.data.crowns_reward,
+          course_id: lesson.course_id,
+          title: lesson.title,
+          description: lesson.description,
+          unit: lesson.unit,
+          difficulty: lesson.difficulty,
+          xp_reward: lesson.xp_reward,
+          crowns_reward: lesson.crowns_reward,
         });
+
+        const courseRes = await api.get(`/courses/${lesson.course_id}`);
+        setCourseTitle(courseRes.data.title);
       } catch (error) {
         console.error("Failed to fetch lesson", error);
-        toast.error("Failed to load lesson");
+        toast.error("Failed to load lesson or course");
       } finally {
         setLoading(false);
       }
     }
 
-    if (lessonId) fetchLesson();
+    if (lessonId) fetchLessonAndCourse();
   }, [lessonId]);
 
   const handleUpdateLesson = async (e: React.FormEvent) => {
@@ -67,10 +74,25 @@ export default function EditLessonPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Edit Lesson</h1>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Header in Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+          <div>
+            <CardTitle className="text-2xl">Edit Lesson</CardTitle>
+            <p className="text-gray-600 mt-1">
+              <span className="font-semibold">Course:</span> {courseTitle}
+              <br />
+            </p>
+          </div>
+        </CardHeader>
+      </Card>
 
-      <form onSubmit={handleUpdateLesson} className="flex flex-col gap-6">
+      {/* Edit Form */}
+      <form
+        onSubmit={handleUpdateLesson}
+        className="flex flex-col gap-6 bg-white p-6 rounded-lg shadow-md"
+      >
         {/* Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -168,8 +190,11 @@ export default function EditLessonPage() {
           />
         </div>
 
-        {/* Submit */}
-        <div className="flex justify-end">
+        {/* Submit + Cancel */}
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
           <Button type="submit">Update Lesson</Button>
         </div>
       </form>

@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
 
 export default function CreateQuestionsPage() {
   const { lessonId } = useParams();
+  const router = useRouter();
+
   const [lessonTitle, setLessonTitle] = useState("");
+  const [courseTitle, setCourseTitle] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [questionText, setQuestionText] = useState("");
@@ -29,27 +33,28 @@ export default function CreateQuestionsPage() {
   const [audioUrl, setAudioUrl] = useState<string>("");
 
   useEffect(() => {
-    async function fetchLesson() {
+    async function fetchLessonAndCourse() {
       try {
-        const res = await api.get(`/lessons/detail/${lessonId}`);
-        setLessonTitle(res.data.title);
+        const lessonRes = await api.get(`/lessons/detail/${lessonId}`);
+        setLessonTitle(lessonRes.data.title);
+
+        const courseRes = await api.get(`/courses/${lessonRes.data.course_id}`);
+        setCourseTitle(courseRes.data.title);
       } catch (error) {
-        console.error("Failed to fetch lesson:", error);
-        setLessonTitle("Unknown Lesson");
+        console.error("Failed to fetch lesson or course", error);
+        toast.error("Failed to load lesson and course info");
       } finally {
         setLoading(false);
       }
     }
 
-    if (lessonId) {
-      fetchLesson();
-    }
+    if (lessonId) fetchLessonAndCourse();
   }, [lessonId]);
 
   const handleTextOptionChange = (index: number, value: string) => {
-    const updatedOptions = [...options];
-    updatedOptions[index] = value;
-    setOptions(updatedOptions);
+    const updated = [...options];
+    updated[index] = value;
+    setOptions(updated);
   };
 
   const handleImageOptionChange = (
@@ -59,34 +64,34 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       const tempUrl = URL.createObjectURL(file);
-      const updatedOptions = [...imageOptions];
-      updatedOptions[index] = tempUrl;
-      setImageOptions(updatedOptions);
+      const updated = [...imageOptions];
+      updated[index] = tempUrl;
+      setImageOptions(updated);
     }
   };
 
   const handleTagChange = (index: number, value: string) => {
-    const updatedTags = [...tags];
-    updatedTags[index] = value;
-    setTags(updatedTags);
+    const updated = [...tags];
+    updated[index] = value;
+    setTags(updated);
   };
 
   const addTagField = () => setTags([...tags, ""]);
 
-  const handlePairChange = (index: number, position: 0 | 1, value: string) => {
-    const updatedPairs = [...pairs];
-    updatedPairs[index][position] = value;
-    setPairs(updatedPairs);
+  const handlePairChange = (index: number, pos: 0 | 1, value: string) => {
+    const updated = [...pairs];
+    updated[index][pos] = value;
+    setPairs(updated);
   };
 
   const handleCorrectPairChange = (
     index: number,
-    position: 0 | 1,
+    pos: 0 | 1,
     value: string,
   ) => {
-    const updatedCorrectPairs = [...correctPairs];
-    updatedCorrectPairs[index][position] = value;
-    setCorrectPairs(updatedCorrectPairs);
+    const updated = [...correctPairs];
+    updated[index][pos] = value;
+    setCorrectPairs(updated);
   };
 
   const addPairField = () => {
@@ -96,6 +101,16 @@ export default function CreateQuestionsPage() {
     }
     setPairs([...pairs, ["", ""]]);
     setCorrectPairs([...correctPairs, ["", ""]]);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setImageUrl(URL.createObjectURL(file));
+  };
+
+  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setAudioUrl(URL.createObjectURL(file));
   };
 
   const handleCreateQuestion = async (e: React.FormEvent) => {
@@ -132,7 +147,7 @@ export default function CreateQuestionsPage() {
 
       if (questionType === "matching_pairs") {
         payload.pairs = pairs;
-        payload.answer = JSON.stringify(correctPairs); // ✅ FIXED
+        payload.answer = JSON.stringify(correctPairs);
         payload.image_url = imageUrl || undefined;
         payload.audio_url = audioUrl || undefined;
       }
@@ -160,22 +175,6 @@ export default function CreateQuestionsPage() {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const tempUrl = URL.createObjectURL(file);
-      setImageUrl(tempUrl);
-    }
-  };
-
-  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const tempUrl = URL.createObjectURL(file);
-      setAudioUrl(tempUrl);
-    }
-  };
-
   if (loading) {
     return <div className="p-6">Loading lesson...</div>;
   }
@@ -183,14 +182,28 @@ export default function CreateQuestionsPage() {
   const isListenAndMatch = questionType === "listen_and_match";
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">
-        Create Questions for Lesson: "{lessonTitle}"
-      </h1>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Header Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+          <div>
+            <CardTitle className="text-2xl">Create Question</CardTitle>
+            <p className="text-gray-600 mt-5">
+              <span className="font-semibold">Course:</span> {courseTitle}
+              <br />
+              <span className="font-semibold">Lesson:</span> {lessonTitle}
+            </p>
+          </div>
+        </CardHeader>
+      </Card>
 
-      <p className="mb-4 text-gray-600">Question {questionCount} of 12</p>
+      <p className="text-gray-600">Question {questionCount} of 12</p>
 
-      <form onSubmit={handleCreateQuestion} className="flex flex-col gap-6">
+      {/* Form */}
+      <form
+        onSubmit={handleCreateQuestion}
+        className="flex flex-col gap-6 bg-white p-6 rounded-lg shadow-md"
+      >
         {/* Question Text */}
         <div>
           <label className="block text-sm font-medium mb-1">
@@ -220,7 +233,7 @@ export default function CreateQuestionsPage() {
           </select>
         </div>
 
-        {/* Dynamic Form Sections */}
+        {/* Dynamic Sections */}
         {questionType === "multiple_choice" && (
           <div>
             <label className="block text-sm font-medium mb-1">Options</label>
@@ -317,7 +330,6 @@ export default function CreateQuestionsPage() {
           </>
         )}
 
-        {/* Correct Answer for other types */}
         {!questionType.includes("matching_pairs") && (
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -387,7 +399,7 @@ export default function CreateQuestionsPage() {
           </Button>
         </div>
 
-        {/* Upload Image/Audio for non-Listen-and-Match */}
+        {/* Media Uploads */}
         {!isListenAndMatch && (
           <>
             <div>
@@ -427,8 +439,11 @@ export default function CreateQuestionsPage() {
           </>
         )}
 
-        {/* Submit */}
-        <div className="flex justify-end">
+        {/* Submit + Cancel */}
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
           <Button type="submit">Save Question</Button>
         </div>
       </form>
