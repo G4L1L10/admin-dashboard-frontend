@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import { Pencil, Trash2, Tag } from "lucide-react";
+import { Pencil, Trash2, Tag, BookOpen } from "lucide-react";
 
 interface Question {
   id: string;
@@ -34,6 +34,13 @@ export default function QuestionsPage() {
   const [lessonTitle, setLessonTitle] = useState("");
   const [courseTitle, setCourseTitle] = useState("");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (lessonId) {
+      fetchQuestions();
+      fetchLessonAndCourse();
+    }
+  }, [lessonId]);
 
   async function fetchQuestions() {
     try {
@@ -60,13 +67,6 @@ export default function QuestionsPage() {
     }
   }
 
-  useEffect(() => {
-    if (lessonId) {
-      fetchQuestions();
-      fetchLessonAndCourse();
-    }
-  }, [lessonId]);
-
   async function handleDeleteQuestion(questionId: string) {
     const confirm = window.confirm(
       "Are you sure you want to delete this question?",
@@ -85,30 +85,39 @@ export default function QuestionsPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-10">
-      {/* Header + Metadata */}
+      {/* Header */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+        <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap">
           <div>
             <CardTitle className="text-2xl">All Questions</CardTitle>
             <p className="text-gray-600 mt-5">
-              <span className="font-semibold">Course:</span> {courseTitle}{" "}
+              <span className="font-semibold">Course:</span> {courseTitle}
               <br />
               <span className="font-semibold">Lesson:</span> {lessonTitle}
             </p>
           </div>
-          <Button
-            onClick={() =>
-              router.push(
-                `/admin/courses/${courseId}/lessons/${lessonId}/questions/create`,
-              )
-            }
-          >
-            Create Question
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/admin/courses/${courseId}`)}
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              All Lessons
+            </Button>
+            <Button
+              onClick={() =>
+                router.push(
+                  `/admin/courses/${courseId}/lessons/${lessonId}/questions/create`,
+                )
+              }
+            >
+              Create Question
+            </Button>
+          </div>
         </CardHeader>
       </Card>
 
-      {/* Question List */}
+      {/* List */}
       {loading ? (
         <p>Loading questions...</p>
       ) : questions.length === 0 ? (
@@ -117,55 +126,44 @@ export default function QuestionsPage() {
         <div className="space-y-4">
           {questions.map((q) => (
             <Card key={q.id}>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold mb-1">
-                  {q.question_text}
-                </CardTitle>
-                <p className="text-sm text-gray-500 capitalize">
-                  {q.question_type}
-                </p>
-              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-gray-700 pt-6">
+                <div>
+                  <p className="font-medium">Question:</p>
+                  <p className="text-gray-800">{q.question_text}</p>
+                </div>
 
-              <CardContent className="space-y-3 text-sm text-gray-700">
-                {/* Options */}
+                <div>
+                  <p className="font-medium">Question Type:</p>
+                  <p className="capitalize text-gray-800">{q.question_type}</p>
+                </div>
+
                 {q.options?.length > 0 && (
                   <div>
                     <p className="font-medium">Options:</p>
-                    {q.question_type === "matching_pairs" ? (
-                      <ul className="list-disc pl-4">
-                        {q.options.map((opt, i) => (
-                          <li key={i}>
-                            {opt.replace("::", "⇄").replace("::", "⇄")}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <ul className="list-disc pl-4">
-                        {q.options.map((opt, i) => (
-                          <li key={i}>{opt}</li>
-                        ))}
-                      </ul>
-                    )}
+                    <ul className="list-disc pl-4 text-gray-800">
+                      {q.question_type === "matching_pairs"
+                        ? q.options.map((opt, i) => (
+                            <li key={i}>{opt.replace("::", " ⇄ ")}</li>
+                          ))
+                        : q.options.map((opt, i) => <li key={i}>{opt}</li>)}
+                    </ul>
                   </div>
                 )}
 
-                {/* Answer */}
                 {q.answer && (
-                  <p>
-                    <span className="font-medium">Answer:</span>{" "}
-                    <span className="text-gray-800">{q.answer}</span>
-                  </p>
+                  <div>
+                    <p className="font-medium">Answer:</p>
+                    <p className="text-gray-800">{q.answer}</p>
+                  </div>
                 )}
 
-                {/* Explanation */}
                 {q.explanation && (
-                  <p>
-                    <span className="font-medium">Explanation:</span>{" "}
-                    {q.explanation}
-                  </p>
+                  <div>
+                    <p className="font-medium">Explanation:</p>
+                    <p className="text-gray-800">{q.explanation}</p>
+                  </div>
                 )}
 
-                {/* Image */}
                 {q.image_url && (
                   <div>
                     <p className="font-medium mb-1">Image:</p>
@@ -177,7 +175,6 @@ export default function QuestionsPage() {
                   </div>
                 )}
 
-                {/* Audio */}
                 {q.audio_url && (
                   <div>
                     <p className="font-medium mb-1">Audio:</p>
@@ -188,13 +185,12 @@ export default function QuestionsPage() {
                   </div>
                 )}
 
-                {/* Tags */}
                 {q.tags?.length > 0 && (
                   <div>
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mt-2">
+                    <p className="font-medium mb-1 flex items-center gap-1">
                       <Tag className="w-4 h-4" />
                       Tags:
-                    </div>
+                    </p>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {q.tags.map((tag, idx) => (
                         <span

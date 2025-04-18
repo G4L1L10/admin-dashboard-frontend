@@ -251,19 +251,20 @@ export default function EditQuestionPage() {
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Tags (optional)
           </label>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag, idx) => (
               <div
                 key={idx}
-                className="flex items-center bg-gray-100 border rounded px-2 py-1"
+                className="flex items-center border border-gray-300 rounded-md px-2 py-1 bg-white focus-within:ring-2 focus-within:ring-ring focus-within:border-black"
               >
-                <Input
+                <input
                   value={tag}
                   onChange={(e) => handleTagChange(idx, e.target.value)}
-                  className="w-24 border-none p-0 bg-transparent text-sm"
+                  className="bg-transparent text-sm text-gray-800 outline-none px-1 w-auto"
+                  style={{ width: `${Math.max(50, tag.length * 9)}px` }}
                 />
                 <button
                   type="button"
@@ -275,7 +276,12 @@ export default function EditQuestionPage() {
               </div>
             ))}
           </div>
-          <Button type="button" onClick={addTagField} className="mt-2">
+          <Button
+            type="button"
+            onClick={addTagField}
+            className="mt-2"
+            variant="outline"
+          >
             Add Tag
           </Button>
         </div>

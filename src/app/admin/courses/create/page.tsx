@@ -16,11 +16,15 @@ export default function CreateCoursePage() {
     e.preventDefault();
     try {
       const res = await api.post("/courses", { title, description });
-      router.push(`/admin/courses/${res.data.id}`); // After creation, view course
+      router.push(`/admin/courses/${res.data.id}`);
     } catch (error) {
       console.error(error);
       alert("Failed to create course.");
     }
+  };
+
+  const handleCancel = () => {
+    router.push("/admin/courses");
   };
 
   return (
@@ -39,7 +43,12 @@ export default function CreateCoursePage() {
           onChange={(e) => setDescription(e.target.value)}
           required
         />
-        <Button type="submit">Create Course</Button>
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button type="submit">Create Course</Button>
+        </div>
       </form>
     </div>
   );

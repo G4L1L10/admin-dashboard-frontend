@@ -79,7 +79,7 @@ export default function CourseDetailsPage() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mt-1">
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => router.push("/admin/courses")}
             >
               <BookOpen className="h-4 w-4 mr-2" />
@@ -97,6 +97,7 @@ export default function CourseDetailsPage() {
                 router.push(`/admin/courses/${courseId}/lessons/create`)
               }
             >
+              <span className="text-lg font-bold mr-2">+</span>
               Add Lesson
             </Button>
           </div>

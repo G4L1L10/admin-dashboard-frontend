@@ -147,8 +147,15 @@ export default function CreateLessonPage() {
               />
             </div>
 
-            {/* Submit */}
-            <div className="flex justify-end">
+            {/* Submit + Cancel */}
+            <div className="flex justify-end gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+              >
+                Cancel
+              </Button>
               <Button type="submit">Create Lesson</Button>
             </div>
           </form>

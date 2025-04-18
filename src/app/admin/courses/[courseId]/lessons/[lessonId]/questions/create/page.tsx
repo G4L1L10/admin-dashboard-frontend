@@ -10,7 +10,8 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
 
 export default function CreateQuestionsPage() {
-  const { lessonId } = useParams();
+  const { courseId, lessonId } = useParams();
+  //  const { lessonId } = useParams();
   const router = useRouter();
 
   const [lessonTitle, setLessonTitle] = useState("");
@@ -440,11 +441,22 @@ export default function CreateQuestionsPage() {
         )}
 
         {/* Submit + Cancel */}
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 flex-wrap">
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
           <Button type="submit">Save Question</Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() =>
+              router.push(
+                `/admin/courses/${courseId}/lessons/${lessonId}/questions`,
+              )
+            }
+          >
+            Finished
+          </Button>
         </div>
       </form>
     </div>
