@@ -5,7 +5,7 @@ export default function Navbar() {
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
       {/* Left: Logo */}
-      <div className="text-xl font-bold text-blue-600">Admin</div>
+      <div className="text-xl font-bold">BR</div>
 
       {/* Right: User Profile */}
       <div className="flex items-center space-x-4">

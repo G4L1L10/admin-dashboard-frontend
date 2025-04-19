@@ -15,7 +15,7 @@ const navItems = [
 export default function Sidebar() {
   return (
     <div className="w-64 bg-white shadow-md min-h-screen p-6">
-      <h2 className="text-2xl font-bold text-blue-600 mb-10">Title</h2>
+      <h2 className="text-4xl font-bold text-gray-800 mb-10">BR</h2>
       <nav className="flex flex-col space-y-4">
         {navItems.map((item) => (
           <Link

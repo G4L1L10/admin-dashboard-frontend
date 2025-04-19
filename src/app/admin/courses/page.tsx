@@ -9,6 +9,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Loader2, Trash2, Pencil, Eye } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -17,24 +23,52 @@ interface Course {
   id: string;
   title: string;
   description: string;
+  created_at?: string;
 }
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState("title_asc");
   const router = useRouter();
 
   async function fetchCourses() {
     setLoading(true);
     try {
       const res = await api.get("/courses");
-      setCourses(res.data || []);
+      const fetched = res.data || [];
+      setCourses(sortCourses(fetched, sortBy));
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch courses!");
     } finally {
       setLoading(false);
     }
+  }
+
+  function sortCourses(list: Course[], sort: string) {
+    const sorted = [...list];
+    switch (sort) {
+      case "title_asc":
+        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      case "title_desc":
+        return sorted.sort((a, b) => b.title.localeCompare(a.title));
+      case "created_newest":
+        return sorted.sort((a, b) =>
+          (b.created_at || "").localeCompare(a.created_at || ""),
+        );
+      case "created_oldest":
+        return sorted.sort((a, b) =>
+          (a.created_at || "").localeCompare(b.created_at || ""),
+        );
+      default:
+        return sorted;
+    }
+  }
+
+  function handleSortChange(value: string) {
+    setSortBy(value);
+    setCourses((prev) => sortCourses(prev, value));
   }
 
   async function handleDelete(courseId: string) {
@@ -46,7 +80,7 @@ export default function CoursesPage() {
     try {
       await api.delete(`/courses/${courseId}`);
       toast.success("Course deleted!");
-      fetchCourses(); // Refresh the list after deletion
+      fetchCourses();
     } catch (error) {
       console.error("Failed to delete course:", error);
       toast.error("Failed to delete course");
@@ -61,9 +95,24 @@ export default function CoursesPage() {
     <div className="flex flex-col gap-10">
       {/* Header / Page Actions */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-xl font-semibold">All Courses</h1>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:items-center">
+            <Select value={sortBy} onValueChange={handleSortChange}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                Sort By
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="title_asc">Title (A–Z)</SelectItem>
+                <SelectItem value="title_desc">Title (Z–A)</SelectItem>
+                <SelectItem value="created_newest">
+                  Date Created (Newest)
+                </SelectItem>
+                <SelectItem value="created_oldest">
+                  Date Created (Oldest)
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <Button onClick={() => router.push("/admin/courses/create")}>
               Create New
             </Button>
