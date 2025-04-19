@@ -13,6 +13,8 @@ export default function EditCoursePage() {
   const router = useRouter();
 
   const [title, setTitle] = useState("");
+  const [originalTitle, setOriginalTitle] = useState("");
+
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +23,8 @@ export default function EditCoursePage() {
       try {
         const res = await api.get(`/courses/${courseId}`);
         setTitle(res.data.title);
+        setOriginalTitle(res.data.title);
+
         setDescription(res.data.description);
       } catch (error) {
         console.error(error);
@@ -52,13 +56,14 @@ export default function EditCoursePage() {
     <div className="max-w-3xl mx-auto p-6 space-y-8">
       {/* Header in Card */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
-          <div>
-            <CardTitle className="text-2xl">Edit Course</CardTitle>
-            <p className="text-gray-600 mt-1">
-              <span className="font-semibold">Course:</span> {title}
-            </p>
-          </div>
+        <CardHeader className="flex flex-col gap-1">
+          <CardTitle className="text-xl">Edit Course</CardTitle>
+          <p className="text-gray-500">
+            You are editing the course:
+            <span className="ml-1 font-semibold text-gray-900">
+              {originalTitle}
+            </span>
+          </p>
         </CardHeader>
       </Card>
 

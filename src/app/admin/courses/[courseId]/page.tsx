@@ -9,8 +9,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Pencil, ListChecks, BookOpen } from "lucide-react";
+import { Loader2, Pencil, ListChecks, BookOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
@@ -18,8 +17,11 @@ interface Lesson {
   id: string;
   title: string;
   description: string;
+  unit: number;
+  difficulty: string;
+  xp_reward: number;
+  crowns_reward: number;
 }
-
 export default function CourseDetailsPage() {
   const { courseId } = useParams();
   const router = useRouter();
@@ -55,6 +57,22 @@ export default function CourseDetailsPage() {
     }
   }, [courseId]);
 
+  async function handleDeleteLesson(lessonId: string) {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this lesson?",
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/lessons/${lessonId}`);
+      toast.success("Lesson deleted!");
+      setLessons((prev) => prev.filter((lesson) => lesson.id !== lessonId));
+    } catch (error) {
+      console.error("Failed to delete lesson", error);
+      toast.error("Failed to delete lesson.");
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-6 min-h-[50vh]">
@@ -69,11 +87,19 @@ export default function CourseDetailsPage() {
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
-            <Badge variant="secondary" className="mb-2">
-              Course
-            </Badge>
-            <h1 className="text-2xl font-bold">{course.title}</h1>
-            <p className="text-gray-600 mt-1">{course.description}</p>
+            <h1 className="text-xl font-semibold mb-5">
+              All Lessons
+            </h1>
+            <p>
+              <span className="font-semibold text-gray-600">Course title:</span>{" "}
+              {course.title}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-600">
+                Course description:
+              </span>{" "}
+              {course.description}
+            </p>
           </div>
 
           {/* Action Buttons */}
@@ -119,6 +145,10 @@ export default function CourseDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">{lesson.description}</p>
+                   <p><span className="font-medium text-gray-800">Unit:</span> {lesson.unit}</p>
+                  <p><span className="font-medium text-gray-800">Difficulty:</span> {lesson.difficulty}</p>
+                  <p><span className="font-medium text-gray-800">XP Reward:</span> {lesson.xp_reward}</p>
+                  <p><span className="font-medium text-gray-800">Crowns:</span> {lesson.crowns_reward}</p>
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">
                   <Button
@@ -143,6 +173,14 @@ export default function CourseDetailsPage() {
                   >
                     <ListChecks className="h-4 w-4 mr-2" />
                     Questions
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteLesson(lesson.id)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
                   </Button>
                 </CardFooter>
               </Card>

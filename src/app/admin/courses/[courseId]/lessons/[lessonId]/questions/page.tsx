@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardFooter,
+  CardHeader,
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -84,19 +83,24 @@ export default function QuestionsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-10">
+    <div className="flex flex-col gap-10">
       {/* Header */}
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap">
+        <CardHeader className="flex flex-row items-start justify-between">
           <div>
-            <CardTitle className="text-2xl">All Questions</CardTitle>
-            <p className="text-gray-600 mt-5">
-              <span className="font-semibold">Course:</span> {courseTitle}
-              <br />
-              <span className="font-semibold">Lesson:</span> {lessonTitle}
+            <h1 className="text-xl font-semibold mb-5">All Questions</h1>
+            <p>
+              <span className="font-semibold text-gray-600">Course title:</span>{" "}
+              {courseTitle}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-600">Lesson title:</span>{" "}
+              {lessonTitle}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-1">
             <Button
               variant="outline"
               onClick={() => router.push(`/admin/courses/${courseId}`)}
@@ -143,8 +147,8 @@ export default function QuestionsPage() {
                     <ul className="list-disc pl-4 text-gray-800">
                       {q.question_type === "matching_pairs"
                         ? q.options.map((opt, i) => (
-                            <li key={i}>{opt.replace("::", " ⇄ ")}</li>
-                          ))
+                          <li key={i}>{opt.replace("::", " ⇄ ")}</li>
+                        ))
                         : q.options.map((opt, i) => <li key={i}>{opt}</li>)}
                     </ul>
                   </div>

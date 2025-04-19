@@ -188,7 +188,7 @@ export default function CreateQuestionsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
           <div>
-            <CardTitle className="text-2xl">Create Question</CardTitle>
+            <CardTitle className="text-xl">Create Question</CardTitle>
             <p className="text-gray-600 mt-5">
               <span className="font-semibold">Course:</span> {courseTitle}
               <br />

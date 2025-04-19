@@ -79,7 +79,7 @@ export default function EditLessonPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
           <div>
-            <CardTitle className="text-2xl">Edit Lesson</CardTitle>
+            <CardTitle className="text-xl font-semibold">Edit Lesson</CardTitle>
             <p className="text-gray-600 mt-1">
               <span className="font-semibold">Course:</span> {courseTitle}
               <br />

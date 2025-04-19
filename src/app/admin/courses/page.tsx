@@ -62,7 +62,7 @@ export default function CoursesPage() {
       {/* Header / Page Actions */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <h1 className="text-2xl font-bold">All Courses</h1>
+          <h1 className="text-xl font-semibold">All Courses</h1>
           <div className="flex gap-3">
             <Button onClick={() => router.push("/admin/courses/create")}>
               Create New
