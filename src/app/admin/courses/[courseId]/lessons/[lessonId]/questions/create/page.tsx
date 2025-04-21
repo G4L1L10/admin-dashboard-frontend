@@ -11,7 +11,6 @@ import api from "@/lib/api";
 
 export default function CreateQuestionsPage() {
   const { courseId, lessonId } = useParams();
-  //  const { lessonId } = useParams();
   const router = useRouter();
 
   const [lessonTitle, setLessonTitle] = useState("");
@@ -114,77 +113,91 @@ export default function CreateQuestionsPage() {
     if (file) setAudioUrl(URL.createObjectURL(file));
   };
 
+  const buildPayload = () => {
+    const payload: any = {
+      lesson_id: lessonId,
+      question_text: questionText,
+      question_type: questionType,
+      explanation,
+      tags,
+    };
+
+    if (questionType === "multiple_choice") {
+      payload.options = options;
+      payload.answer = answer;
+      payload.image_url = imageUrl || undefined;
+      payload.audio_url = audioUrl || undefined;
+    }
+
+    if (questionType === "listen_and_match") {
+      payload.options = imageOptions.map((url) => ({ imageUrl: url }));
+      payload.answer = answer;
+      payload.audio_url = audioUrl || undefined;
+    }
+
+    if (questionType === "true_false") {
+      payload.options = ["True", "False"];
+      payload.answer = answer;
+      payload.image_url = imageUrl || undefined;
+      payload.audio_url = audioUrl || undefined;
+    }
+
+    if (questionType === "matching_pairs") {
+      payload.pairs = pairs;
+      payload.answer = JSON.stringify(correctPairs);
+      payload.image_url = imageUrl || undefined;
+      payload.audio_url = audioUrl || undefined;
+    }
+
+    return payload;
+  };
+
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      let payload: any = {
-        lesson_id: lessonId,
-        question_text: questionText,
-        question_type: questionType,
-        explanation,
-        tags,
-      };
-
-      if (questionType === "multiple_choice") {
-        payload.options = options;
-        payload.answer = answer;
-        payload.image_url = imageUrl || undefined;
-        payload.audio_url = audioUrl || undefined;
-      }
-
-      if (questionType === "listen_and_match") {
-        payload.options = imageOptions.map((url) => ({ imageUrl: url }));
-        payload.answer = answer;
-        payload.audio_url = audioUrl || undefined;
-      }
-
-      if (questionType === "true_false") {
-        payload.options = ["True", "False"];
-        payload.answer = answer;
-        payload.image_url = imageUrl || undefined;
-        payload.audio_url = audioUrl || undefined;
-      }
-
-      if (questionType === "matching_pairs") {
-        payload.pairs = pairs;
-        payload.answer = JSON.stringify(correctPairs);
-        payload.image_url = imageUrl || undefined;
-        payload.audio_url = audioUrl || undefined;
-      }
-
+      const payload = buildPayload();
       await api.post("/questions", payload);
-
       toast.success("Question created successfully!");
       setQuestionCount((prev) => prev + 1);
-
-      // Reset form
-      setQuestionText("");
-      setQuestionType("multiple_choice");
-      setAnswer("");
-      setExplanation("");
-      setTags([]);
-      setPairs([]);
-      setCorrectPairs([]);
-      setOptions(["", "", "", ""]);
-      setImageOptions(["", "", "", ""]);
-      setImageUrl("");
-      setAudioUrl("");
+      resetForm();
     } catch (error) {
       console.error("Failed to create question:", error);
-      toast.error("Failed to create question. Check console for details.");
+      toast.error("Failed to create question.");
     }
   };
 
-  if (loading) {
-    return <div className="p-6">Loading lesson...</div>;
-  }
+  const handleSaveAndFinish = async () => {
+    try {
+      const payload = buildPayload();
+      await api.post("/questions", payload);
+      toast.success("Question saved and finished!");
+      router.push(`/admin/courses/${courseId}/lessons/${lessonId}/questions`);
+    } catch (error) {
+      console.error("Failed to finish saving question:", error);
+      toast.error("Failed to finish and navigate.");
+    }
+  };
+
+  const resetForm = () => {
+    setQuestionText("");
+    setQuestionType("multiple_choice");
+    setAnswer("");
+    setExplanation("");
+    setTags([]);
+    setPairs([]);
+    setCorrectPairs([]);
+    setOptions(["", "", "", ""]);
+    setImageOptions(["", "", "", ""]);
+    setImageUrl("");
+    setAudioUrl("");
+  };
+
+  if (loading) return <div className="p-6">Loading lesson...</div>;
 
   const isListenAndMatch = questionType === "listen_and_match";
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Header Card */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
           <div>
@@ -200,12 +213,10 @@ export default function CreateQuestionsPage() {
 
       <p className="text-gray-600">Question {questionCount} of 12</p>
 
-      {/* Form */}
       <form
         onSubmit={handleCreateQuestion}
         className="flex flex-col gap-6 bg-white p-6 rounded-lg shadow-md"
       >
-        {/* Question Text */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Question Text
@@ -217,7 +228,6 @@ export default function CreateQuestionsPage() {
           />
         </div>
 
-        {/* Question Type */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Question Type
@@ -234,7 +244,6 @@ export default function CreateQuestionsPage() {
           </select>
         </div>
 
-        {/* Dynamic Sections */}
         {questionType === "multiple_choice" && (
           <div>
             <label className="block text-sm font-medium mb-1">Options</label>
@@ -370,7 +379,6 @@ export default function CreateQuestionsPage() {
           </div>
         )}
 
-        {/* Explanation */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Explanation (optional)
@@ -381,7 +389,6 @@ export default function CreateQuestionsPage() {
           />
         </div>
 
-        {/* Tags */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Tags (optional)
@@ -400,7 +407,6 @@ export default function CreateQuestionsPage() {
           </Button>
         </div>
 
-        {/* Media Uploads */}
         {!isListenAndMatch && (
           <>
             <div>
@@ -440,7 +446,6 @@ export default function CreateQuestionsPage() {
           </>
         )}
 
-        {/* Submit + Cancel */}
         <div className="flex justify-end gap-4 flex-wrap">
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
@@ -449,11 +454,7 @@ export default function CreateQuestionsPage() {
           <Button
             type="button"
             variant="secondary"
-            onClick={() =>
-              router.push(
-                `/admin/courses/${courseId}/lessons/${lessonId}/questions`,
-              )
-            }
+            onClick={handleSaveAndFinish}
           >
             Finished
           </Button>

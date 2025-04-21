@@ -168,7 +168,7 @@ export default function CourseDetailsPage() {
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700 font-medium">Sort:</span>
           <Select value={sortOption} onValueChange={setSortOption}>
-            <SelectTrigger className="w-[220px] h-8 capitalize">
+            <SelectTrigger className="w-[220px] h-8 capitalize border-gray-300 hover:border-gray-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-500">
               {sortOption
                 .replace("title_asc", "Title (A - Z)")
                 .replace("title_desc", "Title (Z - A)")
@@ -188,11 +188,11 @@ export default function CourseDetailsPage() {
           </Select>
         </div>
 
-        {/* Filters */}
+        {/* Difficulty */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700 font-medium">Difficulty:</span>
           <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-            <SelectTrigger className="w-[160px] h-8 capitalize">
+            <SelectTrigger className="w-[160px] h-8 capitalize border-gray-300 hover:border-gray-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-500">
               {difficultyFilter === "all" ? "All" : difficultyFilter}
             </SelectTrigger>
             <SelectContent>
@@ -204,52 +204,49 @@ export default function CourseDetailsPage() {
           </Select>
         </div>
 
+        {/* Unit */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700 font-medium">Unit:</span>
           <Select value={unitRangeFilter} onValueChange={setUnitRangeFilter}>
-            <SelectTrigger className="w-[160px] h-8">
+            <SelectTrigger className="w-[160px] h-8 border-gray-300 hover:border-gray-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-500">
               {unitRangeFilter === "all" ? "All" : `Units ${unitRangeFilter}`}
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               {["1-10", "11-20", "21-30", "31-40", "41-50", "51-60", "61-70", "71-80", "81-90", "91-100"].map((range) => (
-                <SelectItem key={range} value={range}>
-                  {range}
-                </SelectItem>
+                <SelectItem key={range} value={range}>{range}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
+        {/* XP */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700 font-medium">XP:</span>
           <Select value={xpRangeFilter} onValueChange={setXpRangeFilter}>
-            <SelectTrigger className="w-[160px] h-8">
+            <SelectTrigger className="w-[160px] h-8 border-gray-300 hover:border-gray-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-500">
               {xpRangeFilter === "all" ? "All" : `XP ${xpRangeFilter}`}
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               {["1-49", "50-99", "100-149", "150-199", "200-249", "250-299"].map((range) => (
-                <SelectItem key={range} value={range}>
-                  {range}
-                </SelectItem>
+                <SelectItem key={range} value={range}>{range}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
+        {/* Crowns */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700 font-medium">Crowns:</span>
           <Select value={crownsRangeFilter} onValueChange={setCrownsRangeFilter}>
-            <SelectTrigger className="w-[160px] h-8">
+            <SelectTrigger className="w-[160px] h-8 border-gray-300 hover:border-gray-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-500">
               {crownsRangeFilter === "all" ? "All" : `Crowns ${crownsRangeFilter}`}
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               {["1-10", "11-20", "21-30", "31-40", "41-50"].map((range) => (
-                <SelectItem key={range} value={range}>
-                  {range}
-                </SelectItem>
+                <SelectItem key={range} value={range}>{range}</SelectItem>
               ))}
             </SelectContent>
           </Select>

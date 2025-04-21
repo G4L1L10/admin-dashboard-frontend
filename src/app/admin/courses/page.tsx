@@ -98,21 +98,6 @@ export default function CoursesPage() {
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-xl font-semibold">All Courses</h1>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:items-center">
-            <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                Sort By
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="title_asc">Title (A–Z)</SelectItem>
-                <SelectItem value="title_desc">Title (Z–A)</SelectItem>
-                <SelectItem value="created_newest">
-                  Date Created (Newest)
-                </SelectItem>
-                <SelectItem value="created_oldest">
-                  Date Created (Oldest)
-                </SelectItem>
-              </SelectContent>
-            </Select>
             <Button onClick={() => router.push("/admin/courses/create")}>
               Create New
             </Button>
@@ -126,6 +111,30 @@ export default function CoursesPage() {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Sort Dropdown with Label */}
+      <div className="flex items-center gap-2 w-full sm:w-auto">
+        <span className="text-sm font-medium text-gray-700">Sort:</span>
+        <Select value={sortBy} onValueChange={handleSortChange}>
+          <SelectTrigger className="w-full sm:w-[200px] capitalize">
+            {sortBy
+              .replace("title_asc", "Title (A–Z)")
+              .replace("title_desc", "Title (Z–A)")
+              .replace("created_newest", "Date Created (Newest)")
+              .replace("created_oldest", "Date Created (Oldest)")}
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="title_asc">Title (A–Z)</SelectItem>
+            <SelectItem value="title_desc">Title (Z–A)</SelectItem>
+            <SelectItem value="created_newest">
+              Date Created (Newest)
+            </SelectItem>
+            <SelectItem value="created_oldest">
+              Date Created (Oldest)
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Courses Grid */}
       {Array.isArray(courses) && courses.length > 0 ? (
