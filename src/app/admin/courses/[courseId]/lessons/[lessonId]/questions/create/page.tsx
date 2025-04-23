@@ -450,13 +450,13 @@ export default function CreateQuestionsPage() {
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
-          <Button type="submit">Save Question</Button>
+          <Button type="submit">Save</Button>
           <Button
             type="button"
             variant="secondary"
             onClick={handleSaveAndFinish}
           >
-            Finished
+            Save and exit
           </Button>
         </div>
       </form>
