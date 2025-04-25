@@ -55,9 +55,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm shadow-lg border border-gray-200">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-semibold text-gray-800">
-            Login
+            Admin Login
           </CardTitle>
-          <p className="text-sm text-gray-500 mt-1">Bandroom Content Admin</p>
+          <p className="text-sm text-gray-500 mt-1"></p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-5">

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
+import { uploadMedia } from "@/lib/upload";
 
 export default function CreateQuestionsPage() {
   const { courseId, lessonId } = useParams();
@@ -57,19 +58,23 @@ export default function CreateQuestionsPage() {
     setOptions(updated);
   };
 
-  const handleImageOptionChange = (
+  const handleImageOptionChange = async (
     index: number,
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
-      const tempUrl = URL.createObjectURL(file);
-      const updated = [...imageOptions];
-      updated[index] = tempUrl;
-      setImageOptions(updated);
+      try {
+        const url = await uploadMedia(file);
+        const updated = [...imageOptions];
+        updated[index] = url;
+        setImageOptions(updated);
+      } catch (err) {
+        console.error("Failed to upload image option:", err);
+        toast.error("Image option upload failed.");
+      }
     }
   };
-
   const handleTagChange = (index: number, value: string) => {
     const updated = [...tags];
     updated[index] = value;
@@ -103,14 +108,30 @@ export default function CreateQuestionsPage() {
     setCorrectPairs([...correctPairs, ["", ""]]);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setImageUrl(URL.createObjectURL(file));
+    if (file) {
+      try {
+        const url = await uploadMedia(file);
+        setImageUrl(url);
+      } catch (err) {
+        console.error("Failed to upload image:", err);
+        toast.error("Image upload failed.");
+      }
+    }
   };
 
-  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAudioChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setAudioUrl(URL.createObjectURL(file));
+    if (file) {
+      try {
+        const url = await uploadMedia(file);
+        setAudioUrl(url);
+      } catch (err) {
+        console.error("Failed to upload audio:", err);
+        toast.error("Audio upload failed.");
+      }
+    }
   };
 
   const buildPayload = () => {
