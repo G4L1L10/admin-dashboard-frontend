@@ -12,6 +12,8 @@ import {
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { Pencil, Trash2, Tag, BookOpen } from "lucide-react";
+import SignedImage from "@/components/SignedImage";
+import SignedAudio from "@/components/SignedAudio";
 
 interface Question {
   id: string;
@@ -82,9 +84,15 @@ export default function QuestionsPage() {
     }
   }
 
+  function extractObjectName(fullUrl?: string): string {
+    if (!fullUrl) return "";
+    const parts = fullUrl.split("/"); // ["https:", "", "storage.googleapis.com", "bucket", "uploads", "filename"]
+    const index = parts.findIndex((p) => p === "uploads");
+    return parts.slice(index).join("/"); // "uploads/filename"
+  }
+
   return (
     <div className="flex flex-col gap-10">
-      {/* Header */}
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
@@ -98,8 +106,6 @@ export default function QuestionsPage() {
               {lessonTitle}
             </p>
           </div>
-
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mt-1">
             <Button
               variant="outline"
@@ -121,7 +127,6 @@ export default function QuestionsPage() {
         </CardHeader>
       </Card>
 
-      {/* List */}
       {loading ? (
         <p>Loading questions...</p>
       ) : questions.length === 0 ? (
@@ -147,8 +152,8 @@ export default function QuestionsPage() {
                     <ul className="list-disc pl-4 text-gray-800">
                       {q.question_type === "matching_pairs"
                         ? q.options.map((opt, i) => (
-                          <li key={i}>{opt.replace("::", " ⇄ ")}</li>
-                        ))
+                            <li key={i}>{opt.replace("::", " ⇄ ")}</li>
+                          ))
                         : q.options.map((opt, i) => <li key={i}>{opt}</li>)}
                     </ul>
                   </div>
@@ -171,21 +176,14 @@ export default function QuestionsPage() {
                 {q.image_url && (
                   <div>
                     <p className="font-medium mb-1">Image:</p>
-                    <img
-                      src={q.image_url}
-                      alt="question"
-                      className="max-w-xs rounded-lg border"
-                    />
+                    <SignedImage object={extractObjectName(q.image_url)} />
                   </div>
                 )}
 
                 {q.audio_url && (
                   <div>
                     <p className="font-medium mb-1">Audio:</p>
-                    <audio controls className="w-full">
-                      <source src={q.audio_url} />
-                      Your browser does not support the audio element.
-                    </audio>
+                    <SignedAudio object={extractObjectName(q.audio_url)} />
                   </div>
                 )}
 
