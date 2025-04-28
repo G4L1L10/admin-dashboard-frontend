@@ -30,6 +30,9 @@ export default function CreateQuestionsPage() {
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [imageOptions, setImageOptions] = useState<string[]>(["", "", "", ""]);
 
+  const [imageUrlPreview, setImageUrlPreview] = useState<string>("");
+  const [audioUrlPreview, setAudioUrlPreview] = useState<string>("");
+
   const [imageUrl, setImageUrl] = useState<string>("");
   const [audioUrl, setAudioUrl] = useState<string>("");
 
@@ -112,8 +115,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const url = await uploadMedia(file);
-        setImageUrl(url);
+        const objectPath = await uploadMedia(file); // e.g. uploads/xyz.png
+        const res = await api.get("/media/signed-url", {
+          params: { object: objectPath },
+        });
+        setImageUrlPreview(res.data.url); // for preview
+        setImageUrl(objectPath); // for DB
       } catch (err) {
         console.error("Failed to upload image:", err);
         toast.error("Image upload failed.");
@@ -125,8 +132,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const url = await uploadMedia(file);
-        setAudioUrl(url);
+        const objectPath = await uploadMedia(file); // e.g. uploads/xyz.m4a
+        const res = await api.get("/media/signed-url", {
+          params: { object: objectPath },
+        });
+        setAudioUrlPreview(res.data.url); // for preview
+        setAudioUrl(objectPath); // for DB
       } catch (err) {
         console.error("Failed to upload audio:", err);
         toast.error("Audio upload failed.");
@@ -439,13 +450,13 @@ export default function CreateQuestionsPage() {
                 accept="image/*"
                 onChange={handleImageChange}
               />
-              {imageUrl && (
+              {imageUrlPreview && (
                 <img
-                  src={imageUrl}
+                  src={imageUrlPreview}
                   alt="Preview"
                   className="mt-4 max-h-48 rounded-lg"
                 />
-              )}
+              )}{" "}
             </div>
 
             <div>
@@ -457,12 +468,12 @@ export default function CreateQuestionsPage() {
                 accept="audio/*"
                 onChange={handleAudioChange}
               />
-              {audioUrl && (
+              {audioUrlPreview && (
                 <audio controls className="mt-4">
-                  <source src={audioUrl} />
+                  <source src={audioUrlPreview} />
                   Your browser does not support the audio element.
                 </audio>
-              )}
+              )}{" "}
             </div>
           </>
         )}
