@@ -135,21 +135,24 @@ export default function QuestionsPage() {
         <div className="space-y-4">
           {questions.map((q) => (
             <Card key={q.id}>
-              <CardContent className="space-y-4 text-sm text-gray-700 pt-6">
-                <div>
-                  <p className="font-medium">Question:</p>
+              <CardContent className="space-y-8 text-gray-700 pt-6 bg-gray-50 rounded-md">
+                {/* Question Text */}
+                <div className="space-y-1 border-b pb-4">
+                  <p className="text-lg font-semibold">Question:</p>
                   <p className="text-gray-800">{q.question_text}</p>
                 </div>
 
-                <div>
-                  <p className="font-medium">Question Type:</p>
+                {/* Question Type */}
+                <div className="space-y-1 border-b pb-4">
+                  <p className="text-lg font-semibold">Question Type:</p>
                   <p className="capitalize text-gray-800">{q.question_type}</p>
                 </div>
 
+                {/* Options */}
                 {q.options?.length > 0 && (
-                  <div>
-                    <p className="font-medium">Options:</p>
-                    <ul className="list-disc pl-4 text-gray-800">
+                  <div className="space-y-2 border-b pb-4">
+                    <p className="text-lg font-semibold">Options:</p>
+                    <ul className="list-disc pl-6 text-gray-800">
                       {q.question_type === "matching_pairs"
                         ? q.options.map((opt, i) => (
                             <li key={i}>{opt.replace("::", " ⇄ ")}</li>
@@ -159,39 +162,56 @@ export default function QuestionsPage() {
                   </div>
                 )}
 
+                {/* Answer */}
                 {q.answer && (
-                  <div>
-                    <p className="font-medium">Answer:</p>
+                  <div className="space-y-1 border-b pb-4">
+                    <p className="text-lg font-semibold">Answer:</p>
                     <p className="text-gray-800">{q.answer}</p>
                   </div>
                 )}
 
+                {/* Explanation */}
                 {q.explanation && (
-                  <div>
-                    <p className="font-medium">Explanation:</p>
+                  <div className="space-y-1 border-b pb-4">
+                    <p className="text-lg font-semibold">Explanation:</p>
                     <p className="text-gray-800">{q.explanation}</p>
                   </div>
                 )}
 
+                {/* Image */}
                 {q.image_url && (
-                  <div>
-                    <p className="font-medium mb-1">Image:</p>
-                    <SignedImage object={extractObjectName(q.image_url)} />
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-center">
+                      Image Preview
+                    </p>
+                    <div className="flex justify-center">
+                      <div className="bg-white p-3 rounded-lg shadow-md">
+                        <SignedImage object={extractObjectName(q.image_url)} />
+                      </div>
+                    </div>
                   </div>
                 )}
 
+                {/* Audio */}
                 {q.audio_url && (
-                  <div>
-                    <p className="font-medium mb-1">Audio:</p>
-                    <SignedAudio object={extractObjectName(q.audio_url)} />
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-center">
+                      Audio Playback
+                    </p>
+                    <div className="flex justify-center">
+                      <div className="p-3 rounded-lg max-w-2xl w-full">
+                        <SignedAudio object={extractObjectName(q.audio_url)} />
+                      </div>
+                    </div>
                   </div>
                 )}
 
+                {/* Tags */}
                 {q.tags?.length > 0 && (
-                  <div>
-                    <p className="font-medium mb-1 flex items-center gap-1">
-                      <Tag className="w-4 h-4" />
-                      Tags:
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold flex items-center gap-2">
+                      <Tag className="w-5 h-5" />
+                      Tags
                     </p>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {q.tags.map((tag, idx) => (
