@@ -93,9 +93,23 @@ export default function CreateQuestionsPage() {
   const addTagField = () => setTags([...tags, ""]);
 
   const handlePairChange = (index: number, pos: 0 | 1, value: string) => {
-    const updated = [...pairs];
-    updated[index][pos] = value;
-    setPairs(updated);
+    const updatedPairs = [...pairs];
+    updatedPairs[index][pos] = value;
+    setPairs(updatedPairs);
+
+    const updatedCorrectPairs = [...correctPairs];
+
+    // Ensure the correctPairs array exists
+    if (!updatedCorrectPairs[index]) {
+      updatedCorrectPairs[index] = ["", ""];
+    }
+
+    // Only auto-fill the LEFT side (pos 0)
+    if (pos === 0) {
+      updatedCorrectPairs[index][0] = value;
+    }
+
+    setCorrectPairs(updatedCorrectPairs);
   };
 
   const handleCorrectPairChange = (
