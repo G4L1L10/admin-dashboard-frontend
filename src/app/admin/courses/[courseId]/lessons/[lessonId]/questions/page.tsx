@@ -208,7 +208,7 @@ export default function QuestionsPage() {
 
                 {/* Tags */}
                 {q.tags?.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 mb-5">
                     <p className="text-lg font-semibold flex items-center gap-2">
                       <Tag className="w-5 h-5" />
                       Tags
