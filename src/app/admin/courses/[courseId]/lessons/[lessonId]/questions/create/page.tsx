@@ -36,6 +36,8 @@ export default function CreateQuestionsPage() {
   const [imageUrl, setImageUrl] = useState<string>("");
   const [audioUrl, setAudioUrl] = useState<string>("");
 
+  const [fileResetKey, setFileResetKey] = useState(0);
+
   useEffect(() => {
     async function fetchLessonAndCourse() {
       try {
@@ -44,6 +46,9 @@ export default function CreateQuestionsPage() {
 
         const courseRes = await api.get(`/courses/${lessonRes.data.course_id}`);
         setCourseTitle(courseRes.data.title);
+
+        const questionsRes = await api.get(`/lessons/${lessonId}/questions`);
+        setQuestionCount((questionsRes.data?.length || 0) + 1);
       } catch (error) {
         console.error("Failed to fetch lesson or course", error);
         toast.error("Failed to load lesson and course info");
@@ -78,6 +83,7 @@ export default function CreateQuestionsPage() {
       }
     }
   };
+
   const handleTagChange = (index: number, value: string) => {
     const updated = [...tags];
     updated[index] = value;
@@ -115,12 +121,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const objectPath = await uploadMedia(file); // e.g. uploads/xyz.png
+        const objectPath = await uploadMedia(file);
         const res = await api.get("/media/signed-url", {
           params: { object: objectPath },
         });
-        setImageUrlPreview(res.data.url); // for preview
-        setImageUrl(objectPath); // for DB
+        setImageUrlPreview(res.data.url);
+        setImageUrl(objectPath);
       } catch (err) {
         console.error("Failed to upload image:", err);
         toast.error("Image upload failed.");
@@ -132,12 +138,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const objectPath = await uploadMedia(file); // e.g. uploads/xyz.m4a
+        const objectPath = await uploadMedia(file);
         const res = await api.get("/media/signed-url", {
           params: { object: objectPath },
         });
-        setAudioUrlPreview(res.data.url); // for preview
-        setAudioUrl(objectPath); // for DB
+        setAudioUrlPreview(res.data.url);
+        setAudioUrl(objectPath);
       } catch (err) {
         console.error("Failed to upload audio:", err);
         toast.error("Audio upload failed.");
@@ -186,6 +192,12 @@ export default function CreateQuestionsPage() {
 
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (questionCount >= 12) {
+      toast.warning("You have already created 12 questions for this lesson.");
+      return;
+    }
+
     try {
       const payload = buildPayload();
       await api.post("/questions", payload);
@@ -222,9 +234,38 @@ export default function CreateQuestionsPage() {
     setImageOptions(["", "", "", ""]);
     setImageUrl("");
     setAudioUrl("");
+    setImageUrlPreview("");
+    setAudioUrlPreview("");
+    setFileResetKey((prev) => prev + 1);
   };
 
   if (loading) return <div className="p-6">Loading lesson...</div>;
+
+  if (questionCount > 12) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <Card>
+          <CardHeader className="flex flex-col items-center gap-4">
+            <CardTitle className="text-2xl text-green-600">
+              🎉 All Questions Created!
+            </CardTitle>
+            <p className="text-gray-600 text-center">
+              You have completed 12 out of 12 questions for this lesson.
+            </p>
+            <Button
+              onClick={() =>
+                router.push(
+                  `/admin/courses/${courseId}/lessons/${lessonId}/questions`,
+                )
+              }
+            >
+              Back to Questions
+            </Button>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const isListenAndMatch = questionType === "listen_and_match";
 
@@ -446,10 +487,11 @@ export default function CreateQuestionsPage() {
                 Upload Image (optional)
               </label>
               <Input
+                key={`image-${fileResetKey}`}
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-              />
+              />{" "}
               {imageUrlPreview && (
                 <img
                   src={imageUrlPreview}
@@ -464,10 +506,11 @@ export default function CreateQuestionsPage() {
                 Upload Audio (optional)
               </label>
               <Input
+                key={`audio-${fileResetKey}`}
                 type="file"
                 accept="audio/*"
                 onChange={handleAudioChange}
-              />
+              />{" "}
               {audioUrlPreview && (
                 <audio controls className="mt-4">
                   <source src={audioUrlPreview} />
