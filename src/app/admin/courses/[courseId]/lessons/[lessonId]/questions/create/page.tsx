@@ -27,6 +27,11 @@ export default function CreateQuestionsPage() {
   const [correctPairs, setCorrectPairs] = useState<[string, string][]>([]);
   const [questionCount, setQuestionCount] = useState(1);
 
+  const [matchingPairMediaType, setMatchingPairMediaType] = useState<
+    "text" | "image" | "audio"
+  >("text");
+  const [leftMediaUploads, setLeftMediaUploads] = useState<string[]>([]);
+
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [imageOptions, setImageOptions] = useState<string[]>(["", "", "", ""]);
 
@@ -197,6 +202,7 @@ export default function CreateQuestionsPage() {
     if (questionType === "matching_pairs") {
       payload.pairs = pairs;
       payload.answer = JSON.stringify(correctPairs);
+      payload.left_type = matchingPairMediaType;
       payload.image_url = imageUrl || undefined;
       payload.audio_url = audioUrl || undefined;
     }
@@ -210,6 +216,17 @@ export default function CreateQuestionsPage() {
     if (questionCount >= 12) {
       toast.warning("You have already created 12 questions for this lesson.");
       return;
+    }
+
+    if (
+      questionType === "matching_pairs" &&
+      (matchingPairMediaType === "image" || matchingPairMediaType === "audio")
+    ) {
+      const incomplete = pairs.some((p) => !p[0]);
+      if (incomplete) {
+        toast.error("Please upload a file for every left-side pair.");
+        return;
+      }
     }
 
     try {
@@ -373,20 +390,99 @@ export default function CreateQuestionsPage() {
         )}
 
         {questionType === "matching_pairs" && (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Media Type for Matching Pairs (Left Side)
+            </label>
+            <select
+              value={matchingPairMediaType}
+              onChange={(e) => {
+                const type = e.target.value as "text" | "image" | "audio";
+                setMatchingPairMediaType(type);
+                setLeftMediaUploads(Array(pairs.length).fill(""));
+              }}
+              className="w-full border-gray-300 rounded-md shadow-sm"
+            >
+              <option value="text">Text</option>
+              <option value="image">Image</option>
+              <option value="audio">Audio</option>
+            </select>
+          </div>
+        )}
+
+        {questionType === "matching_pairs" && (
           <>
             <div>
               <label className="block text-sm font-medium mb-1">
                 Matching Pairs (Options)
               </label>
               {pairs.map((pair, idx) => (
-                <div key={idx} className="flex gap-4 mb-2">
+                <div key={idx} className="flex gap-4 mb-4 items-start">
+                  {/* Left side */}
+                  <div className="flex-1">
+                    {matchingPairMediaType === "text" ? (
+                      <Input
+                        placeholder="Left side"
+                        value={pair[0]}
+                        onChange={(e) =>
+                          handlePairChange(idx, 0, e.target.value)
+                        }
+                        required
+                      />
+                    ) : (
+                      <>
+                        <Input
+                          type="file"
+                          accept={
+                            matchingPairMediaType === "image"
+                              ? "image/*"
+                              : "audio/*"
+                          }
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const url = await uploadMedia(file);
+                                const updatedPairs = [...pairs];
+                                updatedPairs[idx][0] = url;
+                                setPairs(updatedPairs);
+
+                                const updatedCorrect = [...correctPairs];
+                                updatedCorrect[idx][0] = url;
+                                setCorrectPairs(updatedCorrect);
+
+                                const previews = [...leftMediaUploads];
+                                previews[idx] = url;
+                                setLeftMediaUploads(previews);
+                              } catch (err) {
+                                toast.error("Failed to upload media.");
+                              }
+                            }
+                          }}
+                          required
+                        />
+                        {leftMediaUploads[idx] &&
+                          matchingPairMediaType === "image" && (
+                            <img
+                              src={leftMediaUploads[idx]}
+                              alt="Preview"
+                              className="mt-2 max-h-24 rounded-md border"
+                            />
+                          )}
+                        {leftMediaUploads[idx] &&
+                          matchingPairMediaType === "audio" && (
+                            <audio controls className="mt-2 w-full max-w-sm">
+                              <source src={leftMediaUploads[idx]} />
+                              Your browser does not support the audio element.
+                            </audio>
+                          )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Right side (always text) */}
                   <Input
-                    placeholder="Left side"
-                    value={pair[0]}
-                    onChange={(e) => handlePairChange(idx, 0, e.target.value)}
-                    required
-                  />
-                  <Input
+                    className="flex-1"
                     placeholder="Right side"
                     value={pair[1]}
                     onChange={(e) => handlePairChange(idx, 1, e.target.value)}
