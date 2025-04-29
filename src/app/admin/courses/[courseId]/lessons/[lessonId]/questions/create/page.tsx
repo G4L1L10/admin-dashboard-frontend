@@ -442,17 +442,21 @@ export default function CreateQuestionsPage() {
                             const file = e.target.files?.[0];
                             if (file) {
                               try {
-                                const url = await uploadMedia(file);
+                                const objectPath = await uploadMedia(file); // e.g. "uploads/foo.png"
+                                const res = await api.get("/media/signed-url", {
+                                  params: { object: objectPath },
+                                });
+
                                 const updatedPairs = [...pairs];
-                                updatedPairs[idx][0] = url;
+                                updatedPairs[idx][0] = objectPath;
                                 setPairs(updatedPairs);
 
                                 const updatedCorrect = [...correctPairs];
-                                updatedCorrect[idx][0] = url;
+                                updatedCorrect[idx][0] = objectPath;
                                 setCorrectPairs(updatedCorrect);
 
                                 const previews = [...leftMediaUploads];
-                                previews[idx] = url;
+                                previews[idx] = res.data.url; // for rendering preview
                                 setLeftMediaUploads(previews);
                               } catch (err) {
                                 toast.error("Failed to upload media.");
