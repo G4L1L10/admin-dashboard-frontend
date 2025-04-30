@@ -95,6 +95,10 @@ export default function CreateQuestionsPage() {
     setTags(updated);
   };
 
+  const handleRemoveTag = (index: number) => {
+    setTags((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const addTagField = () => setTags([...tags, ""]);
 
   const handlePairChange = (index: number, pos: 0 | 1, value: string) => {
@@ -401,6 +405,7 @@ export default function CreateQuestionsPage() {
           </div>
         )}
 
+        {/* MEDIA TYPE (LEFT SIDE) */}
         {questionType === "matching_pairs" && (
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -413,7 +418,7 @@ export default function CreateQuestionsPage() {
                 setMatchingPairMediaType(type);
                 setLeftMediaUploads(Array(pairs.length).fill(""));
               }}
-              className="w-64 p-2 border-gray-300 rounded-md border-1"
+              className="w-64 p-2 border-gray-300 text-sm rounded-md border-1"
             >
               <option value="text">Text</option>
               <option value="image">Image</option>
@@ -452,6 +457,7 @@ export default function CreateQuestionsPage() {
                         <>
                           <Input
                             type="file"
+                            className="w-64 font-light text-gray-500"
                             accept={
                               matchingPairMediaType === "image"
                                 ? "image/*"
@@ -604,19 +610,32 @@ export default function CreateQuestionsPage() {
           />
         </div>
 
+        {/* Tags */}
         <div>
           <label className="block text-sm font-medium mb-1">
             Tags (optional)
           </label>
+
           {tags.map((tag, idx) => (
-            <Input
-              key={idx}
-              value={tag}
-              onChange={(e) => handleTagChange(idx, e.target.value)}
-              placeholder={`Tag ${idx + 1}`}
-              className="mb-2"
-            />
+            <div key={idx} className="flex items-center gap-2 mb-2">
+              <Input
+                value={tag}
+                onChange={(e) => handleTagChange(idx, e.target.value)}
+                placeholder={`Tag ${idx + 1}`}
+                className="w-64"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-red-600"
+                onClick={() => handleRemoveTag(idx)}
+              >
+                ✖
+              </Button>
+            </div>
           ))}
+
           <Button type="button" onClick={addTagField} className="mt-2">
             Add Tag
           </Button>
