@@ -349,7 +349,7 @@ export default function CreateQuestionsPage() {
             Question Type
           </label>
           <select
-            className="w-full border-gray-300 rounded-md shadow-sm"
+            className="w-64 p-2 border-gray-300 rounded-md border-1 text-sm"
             value={questionType}
             onChange={(e) => setQuestionType(e.target.value)}
           >
@@ -370,7 +370,7 @@ export default function CreateQuestionsPage() {
                 onChange={(e) => handleTextOptionChange(idx, e.target.value)}
                 placeholder={`Option ${idx + 1}`}
                 required
-                className="mb-2"
+                className="mb-2 w-96"
               />
             ))}
           </div>
@@ -404,7 +404,7 @@ export default function CreateQuestionsPage() {
         {questionType === "matching_pairs" && (
           <div>
             <label className="block text-sm font-medium mb-1">
-              Media Type for Matching Pairs (Left Side)
+              Media Type (Left Side)
             </label>
             <select
               value={matchingPairMediaType}
@@ -413,7 +413,7 @@ export default function CreateQuestionsPage() {
                 setMatchingPairMediaType(type);
                 setLeftMediaUploads(Array(pairs.length).fill(""));
               }}
-              className="w-full border-gray-300 rounded-md shadow-sm"
+              className="w-64 p-2 border-gray-300 rounded-md border-1"
             >
               <option value="text">Text</option>
               <option value="image">Image</option>
@@ -428,6 +428,7 @@ export default function CreateQuestionsPage() {
               <label className="block text-sm font-medium mb-1">
                 Matching Pairs (Options)
               </label>
+
               {pairs.map((pair, idx) => (
                 <div
                   key={idx}
@@ -557,9 +558,7 @@ export default function CreateQuestionsPage() {
 
         {!questionType.includes("matching_pairs") && (
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Correct Answer
-            </label>
+            <label className="block text-sm mb-1">Correct Answer</label>
             {isListenAndMatch ? (
               <select
                 value={answer}
@@ -577,7 +576,7 @@ export default function CreateQuestionsPage() {
               <select
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm"
+                className="w-64 p-2 border-gray-300 text-sm rounded-md border-1"
                 required
               >
                 <option value="">Select Answer</option>
@@ -587,6 +586,7 @@ export default function CreateQuestionsPage() {
             ) : (
               <Input
                 value={answer}
+                className="w-96"
                 onChange={(e) => setAnswer(e.target.value)}
                 required
               />
@@ -630,6 +630,7 @@ export default function CreateQuestionsPage() {
               </label>
               <Input
                 key={`image-${fileResetKey}`}
+                className="w-64 font-light text-gray-500"
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
@@ -649,6 +650,7 @@ export default function CreateQuestionsPage() {
               </label>
               <Input
                 key={`audio-${fileResetKey}`}
+                className="w-64 font-light text-gray-500"
                 type="file"
                 accept="audio/*"
                 onChange={handleAudioChange}
