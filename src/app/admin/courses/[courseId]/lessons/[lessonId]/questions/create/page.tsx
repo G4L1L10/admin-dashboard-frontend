@@ -440,10 +440,11 @@ export default function CreateQuestionsPage() {
                   className="flex gap-4 mb-4 items-start relative group"
                 >
                   {/* Left side */}
-                  <div className="flex-1">
+                  <div>
                     {matchingPairMediaType === "text" && (
                       <Input
                         placeholder="Left side"
+                        className="w-64"
                         value={pair[0] ?? ""}
                         onChange={(e) =>
                           handlePairChange(idx, 0, e.target.value)
@@ -512,9 +513,9 @@ export default function CreateQuestionsPage() {
 
                   {/* Right side (always text input) */}
                   <Input
-                    className="flex-1"
                     placeholder="Right side"
                     value={pair[1]}
+                    className="w-64"
                     onChange={(e) => handlePairChange(idx, 1, e.target.value)}
                     required
                   />
@@ -534,6 +535,7 @@ export default function CreateQuestionsPage() {
               </Button>
             </div>
 
+            {/* CORRECT MATCHING (ANSWER)*/}
             <div>
               <label className="block text-sm font-medium mb-1 mt-6">
                 Correct Matching (Answer)
@@ -542,6 +544,7 @@ export default function CreateQuestionsPage() {
                 <div key={idx} className="flex gap-4 mb-2">
                   <Input
                     placeholder="Left side (Correct)"
+                    className="w-64"
                     value={pair[0]}
                     onChange={(e) =>
                       handleCorrectPairChange(idx, 0, e.target.value)
@@ -550,6 +553,7 @@ export default function CreateQuestionsPage() {
                   />
                   <Input
                     placeholder="Right side (Correct)"
+                    className="w-64"
                     value={pair[1]}
                     onChange={(e) =>
                       handleCorrectPairChange(idx, 1, e.target.value)
