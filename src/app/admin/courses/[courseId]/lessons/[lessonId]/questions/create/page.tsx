@@ -170,6 +170,18 @@ export default function CreateQuestionsPage() {
     }
   };
 
+  const handleRemovePair = (idx: number) => {
+    const newPairs = [...pairs];
+    const newCorrect = [...correctPairs];
+    const newUploads = [...leftMediaUploads];
+    newPairs.splice(idx, 1);
+    newCorrect.splice(idx, 1);
+    newUploads.splice(idx, 1);
+    setPairs(newPairs);
+    setCorrectPairs(newCorrect);
+    setLeftMediaUploads(newUploads);
+  };
+
   const buildPayload = () => {
     const payload: any = {
       lesson_id: lessonId,
@@ -417,7 +429,10 @@ export default function CreateQuestionsPage() {
                 Matching Pairs (Options)
               </label>
               {pairs.map((pair, idx) => (
-                <div key={idx} className="flex gap-4 mb-4 items-start">
+                <div
+                  key={idx}
+                  className="flex gap-4 mb-4 items-start relative group"
+                >
                   {/* Left side */}
                   <div className="flex-1">
                     {matchingPairMediaType === "text" && (
@@ -496,6 +511,15 @@ export default function CreateQuestionsPage() {
                     onChange={(e) => handlePairChange(idx, 1, e.target.value)}
                     required
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-gray-400 hover:text-red-600 ml-2 p-1 rounded transition"
+                    size="icon"
+                    onClick={() => handleRemovePair(idx)}
+                  >
+                    ✖
+                  </Button>
                 </div>
               ))}
               <Button type="button" onClick={addPairField} className="mt-2">
