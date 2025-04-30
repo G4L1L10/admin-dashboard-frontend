@@ -420,71 +420,75 @@ export default function CreateQuestionsPage() {
                 <div key={idx} className="flex gap-4 mb-4 items-start">
                   {/* Left side */}
                   <div className="flex-1">
-                    {matchingPairMediaType === "text" ? (
+                    {matchingPairMediaType === "text" && (
                       <Input
                         placeholder="Left side"
-                        value={pair[0]}
+                        value={pair[0] ?? ""}
                         onChange={(e) =>
                           handlePairChange(idx, 0, e.target.value)
                         }
                         required
                       />
-                    ) : (
-                      <>
-                        <Input
-                          type="file"
-                          accept={
-                            matchingPairMediaType === "image"
-                              ? "image/*"
-                              : "audio/*"
-                          }
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              try {
-                                const objectPath = await uploadMedia(file); // e.g. "uploads/foo.png"
-                                const res = await api.get("/media/signed-url", {
-                                  params: { object: objectPath },
-                                });
-
-                                const updatedPairs = [...pairs];
-                                updatedPairs[idx][0] = objectPath;
-                                setPairs(updatedPairs);
-
-                                const updatedCorrect = [...correctPairs];
-                                updatedCorrect[idx][0] = objectPath;
-                                setCorrectPairs(updatedCorrect);
-
-                                const previews = [...leftMediaUploads];
-                                previews[idx] = res.data.url; // for rendering preview
-                                setLeftMediaUploads(previews);
-                              } catch (err) {
-                                toast.error("Failed to upload media.");
-                              }
-                            }
-                          }}
-                          required
-                        />
-                        {leftMediaUploads[idx] &&
-                          matchingPairMediaType === "image" && (
-                            <img
-                              src={leftMediaUploads[idx]}
-                              alt="Preview"
-                              className="mt-2 max-h-24 rounded-md border"
-                            />
-                          )}
-                        {leftMediaUploads[idx] &&
-                          matchingPairMediaType === "audio" && (
-                            <audio controls className="mt-2 w-full max-w-sm">
-                              <source src={leftMediaUploads[idx]} />
-                              Your browser does not support the audio element.
-                            </audio>
-                          )}
-                      </>
                     )}
+
+                    {(matchingPairMediaType === "image" ||
+                      matchingPairMediaType === "audio") && (
+                        <>
+                          <Input
+                            type="file"
+                            accept={
+                              matchingPairMediaType === "image"
+                                ? "image/*"
+                                : "audio/*"
+                            }
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const objectPath = await uploadMedia(file);
+                                  const res = await api.get("/media/signed-url", {
+                                    params: { object: objectPath },
+                                  });
+
+                                  const updatedPairs = [...pairs];
+                                  updatedPairs[idx][0] = objectPath;
+                                  setPairs(updatedPairs);
+
+                                  const updatedCorrect = [...correctPairs];
+                                  updatedCorrect[idx][0] = objectPath;
+                                  setCorrectPairs(updatedCorrect);
+
+                                  const previews = [...leftMediaUploads];
+                                  previews[idx] = res.data.url;
+                                  setLeftMediaUploads(previews);
+                                } catch (err) {
+                                  toast.error("Failed to upload media.");
+                                }
+                              }
+                            }}
+                            required
+                          />
+                          {/* Previews */}
+                          {leftMediaUploads[idx] &&
+                            matchingPairMediaType === "image" && (
+                              <img
+                                src={leftMediaUploads[idx]}
+                                alt="Preview"
+                                className="mt-2 max-h-24 rounded-md border"
+                              />
+                            )}
+                          {leftMediaUploads[idx] &&
+                            matchingPairMediaType === "audio" && (
+                              <audio controls className="mt-2 w-full max-w-sm">
+                                <source src={leftMediaUploads[idx]} />
+                                Your browser does not support the audio element.
+                              </audio>
+                            )}
+                        </>
+                      )}
                   </div>
 
-                  {/* Right side (always text) */}
+                  {/* Right side (always text input) */}
                   <Input
                     className="flex-1"
                     placeholder="Right side"
