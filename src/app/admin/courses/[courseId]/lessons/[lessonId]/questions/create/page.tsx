@@ -33,7 +33,7 @@ export default function CreateQuestionsPage() {
   const [leftMediaUploads, setLeftMediaUploads] = useState<string[]>([]);
 
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
-  const [imageOptions, setImageOptions] = useState<string[]>(["", "", "", ""]);
+  //const [imageOptions, setImageOptions] = useState<string[]>(["", "", "", ""]);
 
   const [imageUrlPreview, setImageUrlPreview] = useState<string>("");
   const [audioUrlPreview, setAudioUrlPreview] = useState<string>("");
@@ -71,6 +71,8 @@ export default function CreateQuestionsPage() {
     setOptions(updated);
   };
 
+  {
+    /*
   const handleImageOptionChange = async (
     index: number,
     e: React.ChangeEvent<HTMLInputElement>,
@@ -88,6 +90,8 @@ export default function CreateQuestionsPage() {
       }
     }
   };
+*/
+  }
 
   const handleTagChange = (index: number, value: string) => {
     const updated = [...tags];
@@ -202,12 +206,6 @@ export default function CreateQuestionsPage() {
       payload.audio_url = audioUrl || undefined;
     }
 
-    if (questionType === "listen_and_match") {
-      payload.options = imageOptions.map((url) => ({ imageUrl: url }));
-      payload.answer = answer;
-      payload.audio_url = audioUrl || undefined;
-    }
-
     if (questionType === "true_false") {
       payload.options = ["True", "False"];
       payload.answer = answer;
@@ -278,7 +276,7 @@ export default function CreateQuestionsPage() {
     setPairs([]);
     setCorrectPairs([]);
     setOptions(["", "", "", ""]);
-    setImageOptions(["", "", "", ""]);
+    //    setImageOptions(["", "", "", ""]);
     setImageUrl("");
     setAudioUrl("");
     setImageUrlPreview("");
@@ -314,7 +312,7 @@ export default function CreateQuestionsPage() {
     );
   }
 
-  const isListenAndMatch = questionType === "listen_and_match";
+  //  const isListenAndMatch = questionType === "listen_and_match";
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -360,7 +358,7 @@ export default function CreateQuestionsPage() {
             <option value="multiple_choice">Multiple Choice</option>
             <option value="true_false">True/False</option>
             <option value="matching_pairs">Matching Pairs</option>
-            <option value="listen_and_match">Listen and Match</option>
+            {/*             <option value="listen_and_match">Listen and Match</option>  */}
           </select>
         </div>
 
@@ -380,7 +378,7 @@ export default function CreateQuestionsPage() {
           </div>
         )}
 
-        {isListenAndMatch && (
+        {/*         {isListenAndMatch && (
           <div>
             <label className="block text-sm font-medium mb-1">
               Upload Image Options
@@ -404,6 +402,7 @@ export default function CreateQuestionsPage() {
             ))}
           </div>
         )}
+        */}
 
         {/* MEDIA TYPE (LEFT SIDE) */}
         {questionType === "matching_pairs" && (
@@ -569,20 +568,7 @@ export default function CreateQuestionsPage() {
         {!questionType.includes("matching_pairs") && (
           <div>
             <label className="block text-sm mb-1">Correct Answer</label>
-            {isListenAndMatch ? (
-              <select
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm"
-                required
-              >
-                <option value="">Select Correct Image</option>
-                <option value="0">Option 1</option>
-                <option value="1">Option 2</option>
-                <option value="2">Option 3</option>
-                <option value="3">Option 4</option>
-              </select>
-            ) : questionType === "true_false" ? (
+            {questionType === "true_false" ? (
               <select
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
@@ -645,48 +631,46 @@ export default function CreateQuestionsPage() {
           </Button>
         </div>
 
-        {!isListenAndMatch && (
-          <>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Upload Image (optional)
-              </label>
-              <Input
-                key={`image-${fileResetKey}`}
-                className="w-64 font-light text-gray-500"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-              />{" "}
-              {imageUrlPreview && (
-                <img
-                  src={imageUrlPreview}
-                  alt="Preview"
-                  className="mt-4 max-h-48 rounded-lg"
-                />
-              )}{" "}
-            </div>
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Upload Image (optional)
+            </label>
+            <Input
+              key={`image-${fileResetKey}`}
+              className="w-64 font-light text-gray-500"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+            />{" "}
+            {imageUrlPreview && (
+              <img
+                src={imageUrlPreview}
+                alt="Preview"
+                className="mt-4 max-h-48 rounded-lg"
+              />
+            )}{" "}
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Upload Audio (optional)
-              </label>
-              <Input
-                key={`audio-${fileResetKey}`}
-                className="w-64 font-light text-gray-500"
-                type="file"
-                accept="audio/*"
-                onChange={handleAudioChange}
-              />{" "}
-              {audioUrlPreview && (
-                <audio controls className="mt-4">
-                  <source src={audioUrlPreview} />
-                  Your browser does not support the audio element.
-                </audio>
-              )}{" "}
-            </div>
-          </>
-        )}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Upload Audio (optional)
+            </label>
+            <Input
+              key={`audio-${fileResetKey}`}
+              className="w-64 font-light text-gray-500"
+              type="file"
+              accept="audio/*"
+              onChange={handleAudioChange}
+            />{" "}
+            {audioUrlPreview && (
+              <audio controls className="mt-4">
+                <source src={audioUrlPreview} />
+                Your browser does not support the audio element.
+              </audio>
+            )}{" "}
+          </div>
+        </>
 
         <div className="flex justify-end gap-4 flex-wrap">
           <Button type="button" variant="outline" onClick={() => router.back()}>
