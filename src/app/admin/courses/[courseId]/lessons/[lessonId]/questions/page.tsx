@@ -25,6 +25,7 @@ interface Question {
   image_url?: string;
   audio_url?: string;
   tags: string[];
+  position: number;
 }
 
 export default function QuestionsPage() {
@@ -136,9 +137,16 @@ export default function QuestionsPage() {
           {questions.map((q) => (
             <Card key={q.id}>
               <CardContent className="space-y-8 text-gray-700 pt-6 bg-gray-50 rounded-md">
+                {/* Position Number */}
+                <div className="space-y-1 border-b pb-4">
+                  <p className="text-lg font-semibold text-indigo-600">
+                    Question {q.position}
+                  </p>
+                </div>
+
                 {/* Question Text */}
                 <div className="space-y-1 border-b pb-4">
-                  <p className="text-lg font-semibold">Question:</p>
+                  <p className="text-lg font-semibold">Question Text:</p>
                   <p className="text-gray-800">{q.question_text}</p>
                 </div>
 
@@ -155,8 +163,8 @@ export default function QuestionsPage() {
                     <ul className="list-disc pl-6 text-gray-800">
                       {q.question_type === "matching_pairs"
                         ? q.options.map((opt, i) => (
-                            <li key={i}>{opt.replace("::", " ⇄ ")}</li>
-                          ))
+                          <li key={i}>{opt.replace("::", " ⇄ ")}</li>
+                        ))
                         : q.options.map((opt, i) => <li key={i}>{opt}</li>)}
                     </ul>
                   </div>
@@ -208,7 +216,7 @@ export default function QuestionsPage() {
 
                 {/* Tags */}
                 {q.tags?.length > 0 && (
-                  <div className="space-y-2 mb-5">
+                  <div className="space-y-2">
                     <p className="text-lg font-semibold flex items-center gap-2">
                       <Tag className="w-5 h-5" />
                       Tags

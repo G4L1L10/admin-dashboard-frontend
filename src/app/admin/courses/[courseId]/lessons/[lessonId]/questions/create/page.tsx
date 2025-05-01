@@ -180,6 +180,7 @@ export default function CreateQuestionsPage() {
   const buildPayload = () => {
     const payload: any = {
       lesson_id: lessonId,
+      position: questionCount,
       question_text: questionText,
       question_type: questionType,
       explanation,
