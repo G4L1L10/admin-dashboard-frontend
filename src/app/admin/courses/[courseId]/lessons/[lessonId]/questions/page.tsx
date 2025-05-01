@@ -133,34 +133,40 @@ export default function QuestionsPage() {
       ) : questions.length === 0 ? (
         <p className="text-gray-500">No questions yet for this lesson.</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {questions.map((q) => (
             <Card key={q.id}>
-              <CardContent className="space-y-8 text-gray-700 pt-6 bg-gray-50 rounded-md">
+              <CardContent className="space-y-2 text-gray-700 pt-6 bg-gray-50 rounded-md">
                 {/* Position Number */}
                 <div className="space-y-1 border-b pb-4">
-                  <p className="text-lg font-semibold text-indigo-600">
-                    Question {q.position}
-                  </p>
+                  <p className="text-lg font-bold">Qns {q.position}</p>
                 </div>
 
                 {/* Question Text */}
                 <div className="space-y-1 border-b pb-4">
-                  <p className="text-lg font-semibold">Question Text:</p>
-                  <p className="text-gray-800">{q.question_text}</p>
+                  <p className="text-sm font-regular text-gray-600">
+                    Question Text:
+                  </p>
+                  <p className="text-gray-800 font-black">{q.question_text}</p>
                 </div>
 
                 {/* Question Type */}
                 <div className="space-y-1 border-b pb-4">
-                  <p className="text-lg font-semibold">Question Type:</p>
-                  <p className="capitalize text-gray-800">{q.question_type}</p>
+                  <p className="text-sm font-regular text-gray-600">
+                    Question Type:
+                  </p>
+                  <p className="capitalize text-gray-800 font-black">
+                    {q.question_type}
+                  </p>
                 </div>
 
                 {/* Options */}
                 {q.options?.length > 0 && (
                   <div className="space-y-2 border-b pb-4">
-                    <p className="text-lg font-semibold">Options:</p>
-                    <ul className="list-disc pl-6 text-gray-800">
+                    <p className="text-sm font-regular text-gray-600">
+                      Options:
+                    </p>
+                    <ul className="list-disc pl-6 text-gray-800 font-black">
                       {q.question_type === "matching_pairs"
                         ? q.options.map((opt, i) => (
                           <li key={i}>{opt.replace("::", " ⇄ ")}</li>
@@ -173,27 +179,31 @@ export default function QuestionsPage() {
                 {/* Answer */}
                 {q.answer && (
                   <div className="space-y-1 border-b pb-4">
-                    <p className="text-lg font-semibold">Answer:</p>
-                    <p className="text-gray-800">{q.answer}</p>
+                    <p className="text-sm font-regular text-gray-600">
+                      Answer:
+                    </p>
+                    <p className="text-gray-800 font-black">{q.answer}</p>
                   </div>
                 )}
 
                 {/* Explanation */}
                 {q.explanation && (
                   <div className="space-y-1 border-b pb-4">
-                    <p className="text-lg font-semibold">Explanation:</p>
-                    <p className="text-gray-800">{q.explanation}</p>
+                    <p className="text-sm font-regular text-gray-600">
+                      Explanation:
+                    </p>
+                    <p className="text-gray-800 font-black">{q.explanation}</p>
                   </div>
                 )}
 
                 {/* Image */}
                 {q.image_url && (
                   <div className="space-y-2">
-                    <p className="text-lg font-semibold text-center">
+                    <p className="text-sm font-regular text-gray-600">
                       Image Preview
                     </p>
-                    <div className="flex justify-center">
-                      <div className="bg-white p-3 rounded-lg shadow-md">
+                    <div className="flex justify-between">
+                      <div className="bg-white p-3 rounded-lg shadow-md mb-5">
                         <SignedImage object={extractObjectName(q.image_url)} />
                       </div>
                     </div>
@@ -203,10 +213,10 @@ export default function QuestionsPage() {
                 {/* Audio */}
                 {q.audio_url && (
                   <div className="space-y-2">
-                    <p className="text-lg font-semibold text-center">
+                    <p className="text-sm font-regular text-gray-600">
                       Audio Playback
                     </p>
-                    <div className="flex justify-center">
+                    <div className="flex justify-between">
                       <div className="p-3 rounded-lg max-w-2xl w-full">
                         <SignedAudio object={extractObjectName(q.audio_url)} />
                       </div>
@@ -217,15 +227,15 @@ export default function QuestionsPage() {
                 {/* Tags */}
                 {q.tags?.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-lg font-semibold flex items-center gap-2">
-                      <Tag className="w-5 h-5" />
+                    <p className="text-sm font-regular text-gray-600 flex items-center gap-2">
+                      <Tag className="w-3 h-3" />
                       Tags
                     </p>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {q.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+                          className="inline-block bg-gray-600 text-gray-100 text-md font-medium px-2.5 py-1 rounded-md mb-5"
                         >
                           {tag}
                         </span>
