@@ -148,7 +148,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const objectPath = await uploadMedia(file);
+        const objectPath = await uploadMedia(
+          file,
+          courseId as string,
+          lessonId as string,
+        );
+
         const res = await api.get("/media/signed-url", {
           params: { object: objectPath },
         });
@@ -165,7 +170,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const objectPath = await uploadMedia(file);
+        const objectPath = await uploadMedia(
+          file,
+          courseId as string,
+          lessonId as string,
+        );
+
         const res = await api.get("/media/signed-url", {
           params: { object: objectPath },
         });
@@ -467,7 +477,13 @@ export default function CreateQuestionsPage() {
                               const file = e.target.files?.[0];
                               if (file) {
                                 try {
-                                  const objectPath = await uploadMedia(file);
+                                  const objectPath = await uploadMedia(
+                                    file,
+                                    courseId as string,
+                                    lessonId as string,
+                                  );
+
+                                  //                                  const objectPath = await uploadMedia(file);
                                   const res = await api.get("/media/signed-url", {
                                     params: { object: objectPath },
                                   });
