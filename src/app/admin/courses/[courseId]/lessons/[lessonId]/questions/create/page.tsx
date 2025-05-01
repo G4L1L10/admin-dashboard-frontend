@@ -33,7 +33,6 @@ export default function CreateQuestionsPage() {
   const [leftMediaUploads, setLeftMediaUploads] = useState<string[]>([]);
 
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
-  //const [imageOptions, setImageOptions] = useState<string[]>(["", "", "", ""]);
 
   const [imageUrlPreview, setImageUrlPreview] = useState<string>("");
   const [audioUrlPreview, setAudioUrlPreview] = useState<string>("");
@@ -70,28 +69,6 @@ export default function CreateQuestionsPage() {
     updated[index] = value;
     setOptions(updated);
   };
-
-  {
-    /*
-  const handleImageOptionChange = async (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const url = await uploadMedia(file);
-        const updated = [...imageOptions];
-        updated[index] = url;
-        setImageOptions(updated);
-      } catch (err) {
-        console.error("Failed to upload image option:", err);
-        toast.error("Image option upload failed.");
-      }
-    }
-  };
-*/
-  }
 
   const handleTagChange = (index: number, value: string) => {
     const updated = [...tags];
@@ -286,7 +263,6 @@ export default function CreateQuestionsPage() {
     setPairs([]);
     setCorrectPairs([]);
     setOptions(["", "", "", ""]);
-    //    setImageOptions(["", "", "", ""]);
     setImageUrl("");
     setAudioUrl("");
     setImageUrlPreview("");
@@ -321,8 +297,6 @@ export default function CreateQuestionsPage() {
       </div>
     );
   }
-
-  //  const isListenAndMatch = questionType === "listen_and_match";
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -368,7 +342,6 @@ export default function CreateQuestionsPage() {
             <option value="multiple_choice">Multiple Choice</option>
             <option value="true_false">True/False</option>
             <option value="matching_pairs">Matching Pairs</option>
-            {/*             <option value="listen_and_match">Listen and Match</option>  */}
           </select>
         </div>
 
@@ -387,32 +360,6 @@ export default function CreateQuestionsPage() {
             ))}
           </div>
         )}
-
-        {/*         {isListenAndMatch && (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Upload Image Options
-            </label>
-            {imageOptions.map((option, idx) => (
-              <div key={idx} className="flex flex-col gap-2 mb-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageOptionChange(idx, e)}
-                  required
-                />
-                {option && (
-                  <img
-                    src={option}
-                    alt={`Option ${idx + 1}`}
-                    className="h-24 w-24 object-cover rounded-md"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        */}
 
         {/* MEDIA TYPE (LEFT SIDE) */}
         {questionType === "matching_pairs" && (
@@ -483,7 +430,6 @@ export default function CreateQuestionsPage() {
                                     lessonId as string,
                                   );
 
-                                  //                                  const objectPath = await uploadMedia(file);
                                   const res = await api.get("/media/signed-url", {
                                     params: { object: objectPath },
                                   });
