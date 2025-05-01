@@ -3,12 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { Pencil, Trash2, Tag, BookOpen } from "lucide-react";
@@ -87,9 +82,9 @@ export default function QuestionsPage() {
 
   function extractObjectName(fullUrl?: string): string {
     if (!fullUrl) return "";
-    const parts = fullUrl.split("/"); // ["https:", "", "storage.googleapis.com", "bucket", "uploads", "filename"]
+    const parts = fullUrl.split("/");
     const index = parts.findIndex((p) => p === "uploads");
-    return parts.slice(index).join("/"); // "uploads/filename"
+    return parts.slice(index).join("/");
   }
 
   return (
@@ -98,13 +93,11 @@ export default function QuestionsPage() {
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
             <h1 className="text-xl font-semibold mb-5">All Questions</h1>
-            <p>
-              <span className="font-semibold text-gray-600">Course title:</span>{" "}
-              {courseTitle}
+            <p className="text-sm text-gray-600">
+              <strong>Course title:</strong> {courseTitle}
             </p>
-            <p>
-              <span className="font-semibold text-gray-600">Lesson title:</span>{" "}
-              {lessonTitle}
+            <p className="text-sm text-gray-600">
+              <strong>Lesson title:</strong> {lessonTitle}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 mt-1">
@@ -133,40 +126,60 @@ export default function QuestionsPage() {
       ) : questions.length === 0 ? (
         <p className="text-gray-500">No questions yet for this lesson.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-6">
           {questions.map((q) => (
             <Card key={q.id}>
-              <CardContent className="space-y-2 text-gray-700 pt-6 bg-gray-50 rounded-md">
-                {/* Position Number */}
-                <div className="space-y-1 border-b pb-4">
-                  <p className="text-lg font-bold">Qns {q.position}</p>
+              <CardHeader className="flex justify-between items-center px-6 pt-6">
+                <span className="inline-block bg-gray-600 text-white text-sm font-regular rounded-sm px-3 py-2">
+                  Qns {q.position}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      router.push(
+                        `/admin/courses/${courseId}/lessons/${lessonId}/questions/${q.id}/edit`,
+                      )
+                    }
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteQuestion(q.id)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
                 </div>
+              </CardHeader>
 
+              <CardContent className="space-y-6 text-gray-800 px-6 pb-6">
                 {/* Question Text */}
-                <div className="space-y-1 border-b pb-4">
-                  <p className="text-sm font-regular text-gray-600">
-                    Question Text:
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Question Text
                   </p>
-                  <p className="text-gray-800 font-black">{q.question_text}</p>
+                  <p className="text-base font-semibold">{q.question_text}</p>
                 </div>
 
                 {/* Question Type */}
-                <div className="space-y-1 border-b pb-4">
-                  <p className="text-sm font-regular text-gray-600">
-                    Question Type:
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Question Type
                   </p>
-                  <p className="capitalize text-gray-800 font-black">
+                  <p className="capitalize text-base font-semibold">
                     {q.question_type}
                   </p>
                 </div>
 
                 {/* Options */}
                 {q.options?.length > 0 && (
-                  <div className="space-y-2 border-b pb-4">
-                    <p className="text-sm font-regular text-gray-600">
-                      Options:
-                    </p>
-                    <ul className="list-disc pl-6 text-gray-800 font-black">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Options</p>
+                    <ul className="list-disc pl-6 space-y-1 font-medium">
                       {q.question_type === "matching_pairs"
                         ? q.options.map((opt, i) => (
                           <li key={i}>{opt.replace("::", " ⇄ ")}</li>
@@ -178,64 +191,57 @@ export default function QuestionsPage() {
 
                 {/* Answer */}
                 {q.answer && (
-                  <div className="space-y-1 border-b pb-4">
-                    <p className="text-sm font-regular text-gray-600">
-                      Answer:
-                    </p>
-                    <p className="text-gray-800 font-black">{q.answer}</p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Answer</p>
+                    <p className="font-semibold">{q.answer}</p>
                   </div>
                 )}
 
                 {/* Explanation */}
                 {q.explanation && (
-                  <div className="space-y-1 border-b pb-4">
-                    <p className="text-sm font-regular text-gray-600">
-                      Explanation:
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Explanation
                     </p>
-                    <p className="text-gray-800 font-black">{q.explanation}</p>
+                    <p className="font-semibold">{q.explanation}</p>
                   </div>
                 )}
 
                 {/* Image */}
                 {q.image_url && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-regular text-gray-600">
-                      Image Preview
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-2">
+                      Image
                     </p>
-                    <div className="flex justify-between">
-                      <div className="bg-white p-3 rounded-lg shadow-md mb-5">
-                        <SignedImage object={extractObjectName(q.image_url)} />
-                      </div>
+                    <div className="border rounded-md p-3 max-w-sm">
+                      <SignedImage object={extractObjectName(q.image_url)} />
                     </div>
                   </div>
                 )}
 
                 {/* Audio */}
                 {q.audio_url && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-regular text-gray-600">
-                      Audio Playback
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-2">
+                      Audio
                     </p>
-                    <div className="flex justify-between">
-                      <div className="p-3 rounded-lg max-w-2xl w-full">
-                        <SignedAudio object={extractObjectName(q.audio_url)} />
-                      </div>
+                    <div className="p-3 border rounded-md max-w-xl">
+                      <SignedAudio object={extractObjectName(q.audio_url)} />
                     </div>
                   </div>
                 )}
 
                 {/* Tags */}
                 {q.tags?.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-regular text-gray-600 flex items-center gap-2">
-                      <Tag className="w-3 h-3" />
-                      Tags
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                      <Tag className="w-4 h-4" /> Tags
                     </p>
-                    <div className="flex flex-wrap gap-2 mt-1">
+                    <div className="flex flex-wrap gap-2">
                       {q.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-block bg-gray-600 text-gray-100 text-md font-medium px-2.5 py-1 rounded-md mb-5"
+                          className="inline-block bg-gray-800 text-white text-xs font-medium px-3 py-2 rounded-sm"
                         >
                           {tag}
                         </span>
@@ -244,28 +250,6 @@ export default function QuestionsPage() {
                   </div>
                 )}
               </CardContent>
-
-              <CardFooter className="flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    router.push(
-                      `/admin/courses/${courseId}/lessons/${lessonId}/questions/${q.id}/edit`,
-                    )
-                  }
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeleteQuestion(q.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </CardFooter>
             </Card>
           ))}
         </div>
