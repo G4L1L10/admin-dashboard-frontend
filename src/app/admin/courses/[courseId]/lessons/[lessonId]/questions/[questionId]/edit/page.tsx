@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import SignedImage from "@/components/SignedImage";
+import SignedAudio from "@/components/SignedAudio";
 
 export default function EditQuestionPage() {
   const { questionId } = useParams();
@@ -20,12 +22,15 @@ export default function EditQuestionPage() {
     question_type: "multiple_choice",
     explanation: "",
     lesson_id: "",
+    image_url: "",
+    audio_url: "",
   });
 
   const [lessonTitle, setLessonTitle] = useState("");
   const [courseTitle, setCourseTitle] = useState("");
 
   const [answer, setAnswer] = useState("");
+  const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [pairs, setPairs] = useState<[string, string][]>([]);
   const [tags, setTags] = useState<string[]>([]);
 
@@ -40,6 +45,9 @@ export default function EditQuestionPage() {
           explanation,
           tags,
           lesson_id,
+          image_url,
+          audio_url,
+          options,
         } = qRes.data;
 
         setQuestionData({
@@ -47,6 +55,8 @@ export default function EditQuestionPage() {
           question_type,
           explanation,
           lesson_id,
+          image_url: image_url ?? "",
+          audio_url: audio_url ?? "",
         });
 
         if (question_type === "matching_pairs") {
@@ -57,7 +67,11 @@ export default function EditQuestionPage() {
             setPairs([]);
           }
         } else {
-          setAnswer(answer);
+          setAnswer(answer ?? "");
+        }
+
+        if (question_type === "multiple_choice") {
+          setOptions(options ?? ["", "", "", ""]);
         }
 
         setTags(tags ?? []);
@@ -81,16 +95,17 @@ export default function EditQuestionPage() {
   const handleUpdateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const payload = {
-        ...questionData,
-        answer:
-          questionData.question_type === "matching_pairs"
-            ? JSON.stringify(pairs)
-            : answer,
-        tags: tags.filter((tag) => tag.trim() !== ""),
-      };
+    const payload = {
+      ...questionData,
+      answer:
+        questionData.question_type === "matching_pairs"
+          ? JSON.stringify(pairs)
+          : answer,
+      options: questionData.question_type === "multiple_choice" ? options : [],
+      tags: tags.filter((tag) => tag.trim() !== ""),
+    };
 
+    try {
       await api.put(`/questions/${questionId}`, payload);
       toast.success("Question updated!");
       router.back();
@@ -107,11 +122,16 @@ export default function EditQuestionPage() {
   };
 
   const addPair = () => setPairs([...pairs, ["", ""]]);
-
   const removePair = (index: number) => {
     const updated = [...pairs];
     updated.splice(index, 1);
     setPairs(updated);
+  };
+
+  const handleOptionChange = (index: number, value: string) => {
+    const updated = [...options];
+    updated[index] = value;
+    setOptions(updated);
   };
 
   const handleTagChange = (index: number, value: string) => {
@@ -121,12 +141,8 @@ export default function EditQuestionPage() {
   };
 
   const addTagField = () => setTags([...tags, ""]);
-
-  const removeTag = (index: number) => {
-    const updated = [...tags];
-    updated.splice(index, 1);
-    setTags(updated);
-  };
+  const removeTag = (index: number) =>
+    setTags(tags.filter((_, i) => i !== index));
 
   if (loading) {
     return <div className="p-6">Loading question...</div>;
@@ -134,7 +150,6 @@ export default function EditQuestionPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Header in Card format */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
           <div>
@@ -148,14 +163,13 @@ export default function EditQuestionPage() {
         </CardHeader>
       </Card>
 
-      {/* Edit Form */}
       <form
         onSubmit={handleUpdateQuestion}
         className="flex flex-col gap-6 bg-white p-6 rounded-lg shadow-md"
       >
         {/* Question Text */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium mb-1">
             Question Text
           </label>
           <Textarea
@@ -172,7 +186,7 @@ export default function EditQuestionPage() {
 
         {/* Question Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium mb-1">
             Question Type
           </label>
           <select
@@ -188,14 +202,28 @@ export default function EditQuestionPage() {
             <option value="multiple_choice">Multiple Choice</option>
             <option value="true_false">True/False</option>
             <option value="matching_pairs">Matching Pairs</option>
-            <option value="listen_and_match">Listen and Match</option>
           </select>
         </div>
 
-        {/* Answer or Matching Pairs */}
-        {questionData.question_type === "matching_pairs" ? (
+        {/* Multiple Choice Options */}
+        {questionData.question_type === "multiple_choice" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium mb-1">Options</label>
+            {options.map((opt, idx) => (
+              <Input
+                key={idx}
+                value={opt}
+                onChange={(e) => handleOptionChange(idx, e.target.value)}
+                className="mb-2"
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Matching Pairs */}
+        {questionData.question_type === "matching_pairs" && (
+          <div>
+            <label className="block text-sm font-medium mb-1">
               Matching Pairs
             </label>
             {pairs.map((pair, idx) => (
@@ -210,37 +238,35 @@ export default function EditQuestionPage() {
                   value={pair[1]}
                   onChange={(e) => handlePairChange(idx, 1, e.target.value)}
                 />
-                <button
+                <Button
                   type="button"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => removePair(idx)}
-                  className="text-sm text-red-500 hover:underline"
                 >
-                  Remove
-                </button>
+                  ✖
+                </Button>
               </div>
             ))}
             <Button type="button" onClick={addPair} className="mt-2">
               Add Pair
             </Button>
           </div>
-        ) : (
+        )}
+
+        {/* Correct Answer */}
+        {questionData.question_type !== "matching_pairs" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium mb-1">
               Correct Answer
             </label>
-            <Input
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              required
-            />
+            <Input value={answer} onChange={(e) => setAnswer(e.target.value)} />
           </div>
         )}
 
         {/* Explanation */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Explanation (optional)
-          </label>
+          <label className="block text-sm font-medium mb-1">Explanation</label>
           <Textarea
             value={questionData.explanation}
             onChange={(e) =>
@@ -249,16 +275,30 @@ export default function EditQuestionPage() {
           />
         </div>
 
+        {/* Image */}
+        {questionData.image_url && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Image</label>
+            <SignedImage object={questionData.image_url} />
+          </div>
+        )}
+
+        {/* Audio */}
+        {questionData.audio_url && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Audio</label>
+            <SignedAudio object={questionData.audio_url} />
+          </div>
+        )}
+
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tags (optional)
-          </label>
+          <label className="block text-sm font-medium mb-1">Tags</label>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag, idx) => (
               <div
                 key={idx}
-                className="flex items-center border border-gray-300 rounded-md px-2 py-1 bg-white focus-within:ring-2 focus-within:ring-ring focus-within:border-black"
+                className="flex items-center border border-gray-300 rounded-md px-2 py-1"
               >
                 <input
                   value={tag}
@@ -286,7 +326,7 @@ export default function EditQuestionPage() {
           </Button>
         </div>
 
-        {/* Submit + Cancel */}
+        {/* Actions */}
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
