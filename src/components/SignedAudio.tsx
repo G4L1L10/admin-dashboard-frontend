@@ -24,7 +24,7 @@ export default function SignedAudio({ object }: { object: string }) {
   if (!url) return null;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mx-auto">
+    <div className="rounded-sm mx-auto">
       <audio controls className="w-full">
         <source src={url} />
         Your browser does not support the audio element.

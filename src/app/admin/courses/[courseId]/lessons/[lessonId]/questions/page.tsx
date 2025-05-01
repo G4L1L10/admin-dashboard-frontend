@@ -213,7 +213,7 @@ export default function QuestionsPage() {
                     <p className="text-sm font-medium text-gray-500 mb-2">
                       Image
                     </p>
-                    <div className="border rounded-md p-3 max-w-sm">
+                    <div className="rounded-md p-3 max-w-sm">
                       <SignedImage object={extractObjectName(q.image_url)} />
                     </div>
                   </div>
@@ -225,7 +225,7 @@ export default function QuestionsPage() {
                     <p className="text-sm font-medium text-gray-500 mb-2">
                       Audio
                     </p>
-                    <div className="p-3 border rounded-md max-w-xl">
+                    <div className="p-3 max-w-xl">
                       <SignedAudio object={extractObjectName(q.audio_url)} />
                     </div>
                   </div>
