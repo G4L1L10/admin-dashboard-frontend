@@ -24,6 +24,7 @@ export default function EditQuestionPage() {
     lesson_id: "",
     image_url: "",
     audio_url: "",
+    position: 0,
   });
 
   const [lessonTitle, setLessonTitle] = useState("");
@@ -48,6 +49,7 @@ export default function EditQuestionPage() {
           image_url,
           audio_url,
           options,
+          position,
         } = qRes.data;
 
         setQuestionData({
@@ -57,6 +59,7 @@ export default function EditQuestionPage() {
           lesson_id,
           image_url: image_url ?? "",
           audio_url: audio_url ?? "",
+          position,
         });
 
         if (question_type === "matching_pairs") {
@@ -158,6 +161,9 @@ export default function EditQuestionPage() {
               <span className="font-semibold">Course:</span> {courseTitle}
               <br />
               <span className="font-semibold">Lesson:</span> {lessonTitle}
+              <br />
+              <span className="font-semibold">Question Position:</span>{" "}
+              {questionData.position}
             </p>
           </div>
         </CardHeader>
@@ -190,7 +196,7 @@ export default function EditQuestionPage() {
             Question Type
           </label>
           <select
-            className="w-full border-gray-300 rounded-md shadow-sm"
+            className="w-64 p-2 border-gray-300 rounded-md border-1 text-sm"
             value={questionData.question_type}
             onChange={(e) =>
               setQuestionData({
@@ -214,7 +220,7 @@ export default function EditQuestionPage() {
                 key={idx}
                 value={opt}
                 onChange={(e) => handleOptionChange(idx, e.target.value)}
-                className="mb-2"
+                className="w-96 p-2 border-gray-300 rounded-md border-1 text-sm mb-2"
               />
             ))}
           </div>
@@ -260,7 +266,23 @@ export default function EditQuestionPage() {
             <label className="block text-sm font-medium mb-1">
               Correct Answer
             </label>
-            <Input value={answer} onChange={(e) => setAnswer(e.target.value)} />
+            {questionData.question_type === "true_false" ? (
+              <select
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                className="w-64 p-2 border-gray-300 text-sm rounded-md border-1"
+              >
+                <option value="">Select Answer</option>
+                <option value="True">True</option>
+                <option value="False">False</option>
+              </select>
+            ) : (
+              <Input
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                className="w-96 p-2 border-gray-300 rounded-md border-1 text-sm mb-2"
+              />
+            )}
           </div>
         )}
 
