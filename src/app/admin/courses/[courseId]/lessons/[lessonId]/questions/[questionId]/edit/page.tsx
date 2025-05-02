@@ -233,7 +233,7 @@ export default function EditQuestionPage() {
                 question_type: e.target.value,
               })
             }
-            className="w-64 p-2 border rounded"
+            className="w-64 p-2 border rounded-md"
           >
             <option value="multiple_choice">Multiple Choice</option>
             <option value="true_false">True/False</option>
@@ -250,7 +250,7 @@ export default function EditQuestionPage() {
                 key={idx}
                 value={opt}
                 onChange={(e) => handleOptionChange(idx, e.target.value)}
-                className="mb-2"
+                className="mb-2 w-96 p-2 border rounded-md"
               />
             ))}
           </div>
@@ -374,35 +374,31 @@ export default function EditQuestionPage() {
         )}
 
         <div>
-          <label className="block text-sm mb-1">Tags</label>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag, idx) => (
-              <div
-                key={idx}
-                className="flex items-center border px-2 py-1 rounded"
+          <label className="block text-sm font-medium mb-1">
+            Tags (optional)
+          </label>
+
+          {tags.map((tag, idx) => (
+            <div key={idx} className="flex items-center gap-2 mb-2">
+              <Input
+                value={tag}
+                onChange={(e) => handleTagChange(idx, e.target.value)}
+                placeholder={`Tag ${idx + 1}`}
+                className="w-64"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-red-600"
+                onClick={() => removeTag(idx)}
               >
-                <input
-                  value={tag}
-                  onChange={(e) => handleTagChange(idx, e.target.value)}
-                  className="bg-transparent w-auto px-1"
-                  style={{ width: `${Math.max(50, tag.length * 9)}px` }}
-                />
-                <button
-                  type="button"
-                  onClick={() => removeTag(idx)}
-                  className="ml-1 text-sm text-gray-500 hover:text-red-500"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-          <Button
-            type="button"
-            onClick={addTagField}
-            variant="outline"
-            className="mt-2"
-          >
+                ✖
+              </Button>
+            </div>
+          ))}
+
+          <Button type="button" onClick={addTagField} className="mt-2">
             Add Tag
           </Button>
         </div>
