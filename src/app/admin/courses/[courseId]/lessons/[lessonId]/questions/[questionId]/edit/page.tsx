@@ -1,3 +1,4 @@
+// back tio this
 "use client";
 
 import { useState, useEffect } from "react";
@@ -21,6 +22,7 @@ export default function EditQuestionPage() {
     question_text: "",
     question_type: "multiple_choice",
     explanation: "",
+    course_id: "",
     lesson_id: "",
     image_url: "",
     audio_url: "",
@@ -56,6 +58,14 @@ export default function EditQuestionPage() {
           position,
         } = qRes.data;
 
+        // 🧠 Step 1: Fetch lesson details (to get course_id)
+        const lessonRes = await api.get(`/lessons/detail/${lesson_id}`);
+        const courseId = lessonRes.data.course_id;
+
+        // 🧠 Step 2: Fetch course details (optional)
+        const courseRes = await api.get(`/courses/${courseId}`);
+
+        // ✅ Step 3: Set state with all required values
         setQuestionData({
           question_text,
           question_type,
@@ -64,8 +74,13 @@ export default function EditQuestionPage() {
           image_url: image_url ?? "",
           audio_url: audio_url ?? "",
           position,
+          course_id: courseId, // ✅ Add this to be used in uploads
         });
 
+        setLessonTitle(lessonRes.data.title);
+        setCourseTitle(courseRes.data.title);
+
+        // Handle answer and pairs
         if (question_type === "matching_pairs") {
           try {
             const parsed = JSON.parse(answer);
@@ -83,14 +98,8 @@ export default function EditQuestionPage() {
 
         setTags(tags ?? []);
 
-        const lessonRes = await api.get(`/lessons/detail/${lesson_id}`);
-        setLessonTitle(lessonRes.data.title);
-
-        const courseRes = await api.get(`/courses/${lessonRes.data.course_id}`);
-        setCourseTitle(courseRes.data.title);
-
-        const optRes = await api.get(`/questions/${questionId}`);
-        const rawOptions = optRes.data.options ?? [];
+        // Parse options for matching pairs
+        const rawOptions = qRes.data.options ?? [];
         const formattedPairs = rawOptions
           .filter((opt: string) => opt.includes("::"))
           .map((opt: string) => {
@@ -363,6 +372,65 @@ export default function EditQuestionPage() {
           <div>
             <label className="block text-sm mb-1">Image</label>
             <SignedImage object={questionData.image_url} />
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setQuestionData({ ...questionData, image_url: "" });
+                }}
+              >
+                Remove Image
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!questionData.image_url && (
+          <div>
+            <label className="block text-sm mb-1">Upload New Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                try {
+                  // 1. Request signed URL from backend
+                  const res = await api.get("/media/upload-url", {
+                    params: {
+                      filename: file.name,
+                      type: file.type,
+                      course_id: questionData.course_id,
+                      lesson_id: questionData.lesson_id,
+                      question_id: questionId,
+                    },
+                  });
+
+                  const { url, objectName } = res.data;
+
+                  // 2. Upload to GCS via signed URL
+                  await fetch(url, {
+                    method: "PUT",
+                    headers: { "Content-Type": file.type },
+                    body: file,
+                  });
+
+                  // 3. Save object path in question state
+                  setQuestionData({
+                    ...questionData,
+                    image_url: objectName,
+                  });
+
+                  toast.success("Image uploaded!");
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to upload image");
+                }
+              }}
+            />
           </div>
         )}
 
