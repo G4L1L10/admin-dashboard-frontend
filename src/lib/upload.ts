@@ -21,6 +21,7 @@ export async function uploadMedia(
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    timeout: 20000,
   });
 
   return response.data.url; // This is the GCS object path
