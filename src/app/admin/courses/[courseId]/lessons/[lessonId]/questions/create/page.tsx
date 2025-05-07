@@ -37,6 +37,9 @@ export default function CreateQuestionsPage() {
   const [imageUrlPreview, setImageUrlPreview] = useState<string>("");
   const [audioUrlPreview, setAudioUrlPreview] = useState<string>("");
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+
   const [imageUrl, setImageUrl] = useState<string>("");
   const [audioUrl, setAudioUrl] = useState<string>("");
 
@@ -125,20 +128,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const objectPath = await uploadMedia(
-          file,
-          courseId as string,
-          lessonId as string,
-        );
-
-        const res = await api.get("/media/signed-url", {
-          params: { object: objectPath },
-        });
-        setImageUrlPreview(res.data.url);
-        setImageUrl(objectPath);
+        const previewUrl = URL.createObjectURL(file);
+        setImageUrlPreview(previewUrl);
+        setImageFile(file); // Save file to be uploaded later
       } catch (err) {
-        console.error("Failed to upload image:", err);
-        toast.error("Image upload failed.");
+        console.error("Failed to preview image:", err);
+        toast.error("Image preview failed.");
       }
     }
   };
@@ -147,20 +142,12 @@ export default function CreateQuestionsPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const objectPath = await uploadMedia(
-          file,
-          courseId as string,
-          lessonId as string,
-        );
-
-        const res = await api.get("/media/signed-url", {
-          params: { object: objectPath },
-        });
-        setAudioUrlPreview(res.data.url);
-        setAudioUrl(objectPath);
+        const previewUrl = URL.createObjectURL(file);
+        setAudioUrlPreview(previewUrl);
+        setAudioFile(file); // Save file to be uploaded later
       } catch (err) {
-        console.error("Failed to upload audio:", err);
-        toast.error("Audio upload failed.");
+        console.error("Failed to preview audio:", err);
+        toast.error("Audio preview failed.");
       }
     }
   };
@@ -212,6 +199,60 @@ export default function CreateQuestionsPage() {
     return payload;
   };
 
+  async function uploadAndAttachMedia(
+    questionId: string,
+    courseId: string,
+    lessonId: string,
+  ) {
+    const updates: Record<string, string> = {};
+    const fullPayload = buildPayload(); // get all fields (text, type, answer, etc.)
+
+    // Upload image if file exists
+    if (imageFile) {
+      try {
+        const imagePath = await uploadMedia(
+          imageFile,
+          courseId,
+          lessonId,
+          questionId,
+        );
+        updates.image_url = imagePath;
+      } catch (err) {
+        console.error("Failed to upload image:", err);
+        toast.error("Image upload failed.");
+      }
+    }
+
+    // Upload audio if file exists
+    if (audioFile) {
+      try {
+        const audioPath = await uploadMedia(
+          audioFile,
+          courseId,
+          lessonId,
+          questionId,
+        );
+        updates.audio_url = audioPath;
+      } catch (err) {
+        console.error("Failed to upload audio:", err);
+        toast.error("Audio upload failed.");
+      }
+    }
+
+    // Merge all original fields + new image/audio URLs
+    if (Object.keys(updates).length > 0) {
+      try {
+        await api.put(`/questions/${questionId}`, {
+          ...fullPayload,
+          ...updates,
+        });
+      } catch (err) {
+        console.error("Failed to attach media and patch full data:", err);
+        toast.error("Failed to save uploaded media to question.");
+      }
+    }
+  }
+
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -232,8 +273,21 @@ export default function CreateQuestionsPage() {
     }
 
     try {
-      const payload = buildPayload();
-      await api.post("/questions", payload);
+      // Step 1: Create base question without media
+      const basePayload = buildPayload();
+      delete basePayload.image_url;
+      delete basePayload.audio_url;
+
+      const res = await api.post("/questions", basePayload);
+      const questionId = res.data.id;
+
+      // Step 2: Attach media (image/audio)
+      await uploadAndAttachMedia(
+        questionId,
+        courseId as string,
+        lessonId as string,
+      );
+
       toast.success("Question created successfully!");
       setQuestionCount((prev) => prev + 1);
       resetForm();
@@ -245,8 +299,21 @@ export default function CreateQuestionsPage() {
 
   const handleSaveAndFinish = async () => {
     try {
-      const payload = buildPayload();
-      await api.post("/questions", payload);
+      // Step 1: Create base question without media
+      const basePayload = buildPayload();
+      delete basePayload.image_url;
+      delete basePayload.audio_url;
+
+      const res = await api.post("/questions", basePayload);
+      const questionId = res.data.id;
+
+      // Step 2: Attach media
+      await uploadAndAttachMedia(
+        questionId,
+        courseId as string,
+        lessonId as string,
+      );
+
       toast.success("Question saved and finished!");
       router.push(`/admin/courses/${courseId}/lessons/${lessonId}/questions`);
     } catch (error) {
