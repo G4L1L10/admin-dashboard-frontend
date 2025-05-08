@@ -30,7 +30,10 @@ export default function CreateQuestionsPage() {
   const [matchingPairMediaType, setMatchingPairMediaType] = useState<
     "text" | "image" | "audio"
   >("text");
-  const [leftMediaUploads, setLeftMediaUploads] = useState<string[]>([]);
+  //  const [leftMediaUploads, setLeftMediaUploads] = useState<string[]>([]);
+  const [leftMediaUploads, setLeftMediaUploads] = useState<(File | string)[]>(
+    [],
+  );
 
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
 
@@ -204,10 +207,10 @@ export default function CreateQuestionsPage() {
     courseId: string,
     lessonId: string,
   ) {
-    const updates: Record<string, string> = {};
-    const fullPayload = buildPayload(); // get all fields (text, type, answer, etc.)
+    const updates: Record<string, any> = {};
+    const fullPayload = buildPayload(); // includes all text fields
 
-    // Upload image if file exists
+    // Upload image
     if (imageFile) {
       try {
         const imagePath = await uploadViaSignedUrl(
@@ -223,7 +226,7 @@ export default function CreateQuestionsPage() {
       }
     }
 
-    // Upload audio if file exists
+    // Upload audio
     if (audioFile) {
       try {
         const audioPath = await uploadViaSignedUrl(
@@ -239,7 +242,43 @@ export default function CreateQuestionsPage() {
       }
     }
 
-    // Merge all original fields + new image/audio URLs
+    // Handle deferred matching pair media uploads
+    if (
+      questionType === "matching_pairs" &&
+      (matchingPairMediaType === "image" || matchingPairMediaType === "audio")
+    ) {
+      const updatedPairs: [string, string][] = [];
+
+      for (let i = 0; i < pairs.length; i++) {
+        const fileOrPath = leftMediaUploads[i];
+        const right = pairs[i][1];
+
+        if (fileOrPath && typeof fileOrPath !== "string") {
+          try {
+            const objectPath = await uploadViaSignedUrl(
+              fileOrPath,
+              courseId,
+              lessonId,
+              questionId,
+            );
+            updatedPairs.push([objectPath, right]);
+
+            // Update correctPairs left-side
+            if (correctPairs[i]) correctPairs[i][0] = objectPath;
+          } catch (err) {
+            console.error("Failed to upload matching pair media:", err);
+            toast.error(`Failed to upload media for pair ${i + 1}`);
+          }
+        } else {
+          updatedPairs.push([pairs[i][0], right]);
+        }
+      }
+
+      updates.pairs = updatedPairs;
+      updates.answer = JSON.stringify(correctPairs);
+    }
+
+    // Final PATCH if updates exist
     if (Object.keys(updates).length > 0) {
       try {
         await api.put(`/questions/${questionId}`, {
@@ -247,8 +286,8 @@ export default function CreateQuestionsPage() {
           ...updates,
         });
       } catch (err) {
-        console.error("Failed to attach media and patch full data:", err);
-        toast.error("Failed to save uploaded media to question.");
+        console.error("Failed to patch media after upload:", err);
+        toast.error("Failed to save uploaded media.");
       }
     }
   }
@@ -488,51 +527,41 @@ export default function CreateQuestionsPage() {
                                 ? "image/*"
                                 : "audio/*"
                             }
-                            onChange={async (e) => {
+                            onChange={(e) => {
                               const file = e.target.files?.[0];
-                              if (file) {
-                                try {
-                                  const objectPath = await uploadViaSignedUrl(
-                                    file,
-                                    courseId as string,
-                                    lessonId as string,
-                                  );
+                              if (!file) return;
 
-                                  const res = await api.get("/media/signed-url", {
-                                    params: { object: objectPath },
-                                  });
+                              // Temporarily set file name in UI (preview only)
+                              const updatedPairs = [...pairs];
+                              updatedPairs[idx][0] = file.name;
+                              setPairs(updatedPairs);
 
-                                  const updatedPairs = [...pairs];
-                                  updatedPairs[idx][0] = objectPath;
-                                  setPairs(updatedPairs);
+                              const updatedCorrect = [...correctPairs];
+                              if (!updatedCorrect[idx])
+                                updatedCorrect[idx] = ["", ""];
+                              updatedCorrect[idx][0] = file.name;
+                              setCorrectPairs(updatedCorrect);
 
-                                  const updatedCorrect = [...correctPairs];
-                                  updatedCorrect[idx][0] = objectPath;
-                                  setCorrectPairs(updatedCorrect);
-
-                                  const previews = [...leftMediaUploads];
-                                  previews[idx] = res.data.url;
-                                  setLeftMediaUploads(previews);
-                                } catch (err) {
-                                  toast.error("Failed to upload media.");
-                                }
-                              }
+                              const updatedFiles = [...leftMediaUploads];
+                              updatedFiles[idx] = file;
+                              setLeftMediaUploads(updatedFiles);
                             }}
                             required
                           />
                           {/* Previews */}
-                          {leftMediaUploads[idx] &&
+                          {typeof leftMediaUploads[idx] === "string" &&
                             matchingPairMediaType === "image" && (
                               <img
-                                src={leftMediaUploads[idx]}
+                                src={leftMediaUploads[idx] as string}
                                 alt="Preview"
                                 className="mt-2 max-h-24 rounded-md border"
                               />
                             )}
-                          {leftMediaUploads[idx] &&
+
+                          {typeof leftMediaUploads[idx] === "string" &&
                             matchingPairMediaType === "audio" && (
                               <audio controls className="mt-2 w-full max-w-sm">
-                                <source src={leftMediaUploads[idx]} />
+                                <source src={leftMediaUploads[idx] as string} />
                                 Your browser does not support the audio element.
                               </audio>
                             )}
