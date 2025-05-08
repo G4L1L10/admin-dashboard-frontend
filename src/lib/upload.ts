@@ -4,6 +4,7 @@ import api from "./api";
  * Upload a media file (image/audio) to the backend and receive the GCS object path.
  * The path will be structured like: uploads/course_X/lesson_Y/question_Z/...
  */
+/*
 export async function uploadMedia(
   file: File,
   courseId?: string,
@@ -25,4 +26,32 @@ export async function uploadMedia(
   });
 
   return response.data.url; // This is the GCS object path
+}
+*/
+
+export async function uploadViaSignedUrl(
+  file: File,
+  courseId?: string,
+  lessonId?: string,
+  questionId?: string,
+): Promise<string> {
+  const res = await api.get("/media/upload-url", {
+    params: {
+      filename: file.name,
+      type: file.type,
+      course_id: courseId,
+      lesson_id: lessonId,
+      question_id: questionId,
+    },
+  });
+
+  const { url, objectName } = res.data;
+
+  await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+
+  return objectName;
 }

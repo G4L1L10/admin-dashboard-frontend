@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import SignedImage from "@/components/SignedImage";
 import SignedAudio from "@/components/SignedAudio";
+import { uploadViaSignedUrl } from "@/lib/upload";
 
 export default function EditQuestionPage() {
   const { questionId } = useParams();
@@ -398,32 +399,17 @@ export default function EditQuestionPage() {
                 if (!file) return;
 
                 try {
-                  // 1. Request signed URL from backend
-                  const res = await api.get("/media/upload-url", {
-                    params: {
-                      filename: file.name,
-                      type: file.type,
-                      course_id: questionData.course_id,
-                      lesson_id: questionData.lesson_id,
-                      question_id: questionId,
-                    },
-                  });
+                  const objectPath = await uploadViaSignedUrl(
+                    file,
+                    questionData.course_id,
+                    questionData.lesson_id,
+                    questionId as string,
+                  );
 
-                  const { url, objectName } = res.data;
-
-                  // 2. Upload to GCS via signed URL
-                  await fetch(url, {
-                    method: "PUT",
-                    headers: { "Content-Type": file.type },
-                    body: file,
-                  });
-
-                  // 3. Save object path in question state
-                  setQuestionData({
-                    ...questionData,
-                    image_url: objectName,
-                  });
-
+                  setQuestionData((prev) => ({
+                    ...prev,
+                    image_url: objectPath,
+                  }));
                   toast.success("Image uploaded!");
                 } catch (err) {
                   console.error(err);
@@ -434,10 +420,52 @@ export default function EditQuestionPage() {
           </div>
         )}
 
-        {questionData.audio_url && (
+        {questionData.audio_url ? (
           <div>
             <label className="block text-sm mb-1">Audio</label>
             <SignedAudio object={questionData.audio_url} />
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setQuestionData((prev) => ({ ...prev, audio_url: "" }))
+                }
+              >
+                Remove Audio
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm mb-1">Upload New Audio</label>
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                try {
+                  const objectPath = await uploadViaSignedUrl(
+                    file,
+                    questionData.course_id,
+                    questionData.lesson_id,
+                    questionId as string,
+                  );
+
+                  setQuestionData((prev) => ({
+                    ...prev,
+                    audio_url: objectPath,
+                  }));
+                  toast.success("Audio uploaded!");
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to upload audio");
+                }
+              }}
+            />
           </div>
         )}
 

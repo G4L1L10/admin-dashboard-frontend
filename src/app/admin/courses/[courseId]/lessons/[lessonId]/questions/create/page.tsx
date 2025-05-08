@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
-import { uploadMedia } from "@/lib/upload";
+import { uploadViaSignedUrl } from "@/lib/upload";
 
 export default function CreateQuestionsPage() {
   const { courseId, lessonId } = useParams();
@@ -210,7 +210,7 @@ export default function CreateQuestionsPage() {
     // Upload image if file exists
     if (imageFile) {
       try {
-        const imagePath = await uploadMedia(
+        const imagePath = await uploadViaSignedUrl(
           imageFile,
           courseId,
           lessonId,
@@ -226,7 +226,7 @@ export default function CreateQuestionsPage() {
     // Upload audio if file exists
     if (audioFile) {
       try {
-        const audioPath = await uploadMedia(
+        const audioPath = await uploadViaSignedUrl(
           audioFile,
           courseId,
           lessonId,
@@ -492,7 +492,7 @@ export default function CreateQuestionsPage() {
                               const file = e.target.files?.[0];
                               if (file) {
                                 try {
-                                  const objectPath = await uploadMedia(
+                                  const objectPath = await uploadViaSignedUrl(
                                     file,
                                     courseId as string,
                                     lessonId as string,
