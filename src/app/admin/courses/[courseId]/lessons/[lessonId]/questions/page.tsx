@@ -190,11 +190,47 @@ export default function QuestionsPage() {
                 )}
 
                 {/* Answer */}
-                {q.answer && (
+                {q.answer && q.question_type === "matching_pairs" ? (
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Answer</p>
-                    <p className="font-semibold">{q.answer}</p>
+                    <p className="text-sm font-medium text-gray-500 mb-1">
+                      Answer
+                    </p>
+                    <div className="space-y-2">
+                      {JSON.parse(q.answer).map(
+                        ([left, right]: [string, string], idx: number) => (
+                          <div key={idx} className="flex items-center gap-4">
+                            {left.endsWith(".png") ||
+                              left.endsWith(".PNG") ||
+                              left.endsWith(".jpg") ||
+                              left.endsWith(".jpeg") ? (
+                              <SignedImage object={extractObjectName(left)} />
+                            ) : left.endsWith(".mp3") ||
+                              left.endsWith(".m4a") ||
+                              left.endsWith(".wav") ? (
+                              <SignedAudio object={extractObjectName(left)} />
+                            ) : (
+                              <span className="text-sm text-gray-800">
+                                {left}
+                              </span>
+                            )}
+                            <span className="text-gray-400">⇄</span>
+                            <span className="text-sm text-gray-900 font-medium">
+                              {right}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                    </div>
                   </div>
+                ) : (
+                  q.answer && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">
+                        Answer
+                      </p>
+                      <p className="font-semibold">{q.answer}</p>
+                    </div>
+                  )
                 )}
 
                 {/* Explanation */}
