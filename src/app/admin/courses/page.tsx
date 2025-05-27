@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,21 +32,7 @@ export default function CoursesPage() {
   const [sortBy, setSortBy] = useState("title_asc");
   const router = useRouter();
 
-  async function fetchCourses() {
-    setLoading(true);
-    try {
-      const res = await api.get("/courses");
-      const fetched = res.data || [];
-      setCourses(sortCourses(fetched, sortBy));
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch courses!");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function sortCourses(list: Course[], sort: string) {
+  const sortCourses = (list: Course[], sort: string) => {
     const sorted = [...list];
     switch (sort) {
       case "title_asc":
@@ -64,14 +50,28 @@ export default function CoursesPage() {
       default:
         return sorted;
     }
-  }
+  };
 
-  function handleSortChange(value: string) {
+  const fetchCourses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/courses");
+      const fetched = res.data || [];
+      setCourses(sortCourses(fetched, sortBy));
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to fetch courses!");
+    } finally {
+      setLoading(false);
+    }
+  }, [sortBy]);
+
+  const handleSortChange = (value: string) => {
     setSortBy(value);
     setCourses((prev) => sortCourses(prev, value));
-  }
+  };
 
-  async function handleDelete(courseId: string) {
+  const handleDelete = async (courseId: string) => {
     const confirm = window.confirm(
       "Are you sure you want to delete this course?",
     );
@@ -85,15 +85,15 @@ export default function CoursesPage() {
       console.error("Failed to delete course:", error);
       toast.error("Failed to delete course");
     }
-  }
+  };
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [fetchCourses]);
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Header / Page Actions */}
+      {/* Header */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-xl font-semibold">All Courses</h1>
@@ -112,7 +112,7 @@ export default function CoursesPage() {
         </CardHeader>
       </Card>
 
-      {/* Sort Dropdown with Label */}
+      {/* Sort Dropdown */}
       <div className="flex items-center gap-2 w-full sm:w-auto">
         <span className="text-sm font-medium text-gray-700">Sort:</span>
         <Select value={sortBy} onValueChange={handleSortChange}>
@@ -137,7 +137,7 @@ export default function CoursesPage() {
       </div>
 
       {/* Courses Grid */}
-      {Array.isArray(courses) && courses.length > 0 ? (
+      {courses.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
             <Card key={course.id}>

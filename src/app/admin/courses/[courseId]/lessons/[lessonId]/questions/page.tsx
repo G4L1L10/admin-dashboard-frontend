@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -32,14 +32,7 @@ export default function QuestionsPage() {
   const [courseTitle, setCourseTitle] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (lessonId) {
-      fetchQuestions();
-      fetchLessonAndCourse();
-    }
-  }, [lessonId]);
-
-  async function fetchQuestions() {
+  const fetchQuestions = useCallback(async () => {
     try {
       const res = await api.get(`/lessons/${lessonId}/questions`);
       setQuestions(res.data ?? []);
@@ -49,9 +42,9 @@ export default function QuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [lessonId]);
 
-  async function fetchLessonAndCourse() {
+  const fetchLessonAndCourse = useCallback(async () => {
     try {
       const lessonRes = await api.get(`/lessons/detail/${lessonId}`);
       setLessonTitle(lessonRes.data.title);
@@ -62,7 +55,14 @@ export default function QuestionsPage() {
       console.error("Failed to fetch lesson or course info", error);
       toast.error("Failed to load lesson and course titles");
     }
-  }
+  }, [lessonId]);
+
+  useEffect(() => {
+    if (lessonId) {
+      fetchQuestions();
+      fetchLessonAndCourse();
+    }
+  }, [lessonId, fetchQuestions, fetchLessonAndCourse]);
 
   async function handleDeleteQuestion(questionId: string) {
     const confirm = window.confirm(
@@ -182,8 +182,8 @@ export default function QuestionsPage() {
                     <ul className="list-disc pl-6 space-y-1 font-medium">
                       {q.question_type === "matching_pairs"
                         ? q.options.map((opt, i) => (
-                          <li key={i}>{opt.replace("::", " ⇄ ")}</li>
-                        ))
+                            <li key={i}>{opt.replace("::", " ⇄ ")}</li>
+                          ))
                         : q.options.map((opt, i) => <li key={i}>{opt}</li>)}
                     </ul>
                   </div>
@@ -197,28 +197,30 @@ export default function QuestionsPage() {
                     </p>
                     <div className="space-y-2">
                       {JSON.parse(q.answer).map(
-                        ([left, right]: [string, string], idx: number) => (
-                          <div key={idx} className="flex items-center gap-4">
-                            {left.endsWith(".png") ||
-                              left.endsWith(".PNG") ||
-                              left.endsWith(".jpg") ||
-                              left.endsWith(".jpeg") ? (
-                              <SignedImage object={extractObjectName(left)} />
-                            ) : left.endsWith(".mp3") ||
-                              left.endsWith(".m4a") ||
-                              left.endsWith(".wav") ? (
-                              <SignedAudio object={extractObjectName(left)} />
-                            ) : (
-                              <span className="text-sm text-gray-800">
-                                {left}
+                        ([left, right]: [string, string], idx: number) => {
+                          const object = extractObjectName(left);
+                          return (
+                            <div key={idx} className="flex items-center gap-4">
+                              {object.endsWith(".png") ||
+                              object.endsWith(".jpg") ||
+                              object.endsWith(".jpeg") ? (
+                                <SignedImage object={object} />
+                              ) : object.endsWith(".mp3") ||
+                                object.endsWith(".m4a") ||
+                                object.endsWith(".wav") ? (
+                                <SignedAudio object={object} />
+                              ) : (
+                                <span className="text-sm text-gray-800">
+                                  {left}
+                                </span>
+                              )}
+                              <span className="text-gray-400">⇄</span>
+                              <span className="text-sm text-gray-900 font-medium">
+                                {right}
                               </span>
-                            )}
-                            <span className="text-gray-400">⇄</span>
-                            <span className="text-sm text-gray-900 font-medium">
-                              {right}
-                            </span>
-                          </div>
-                        ),
+                            </div>
+                          );
+                        },
                       )}
                     </div>
                   </div>

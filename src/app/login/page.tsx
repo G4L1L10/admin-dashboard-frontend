@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import authApi from "@/lib/authApi";
+import type { AxiosError } from "axios";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
@@ -35,13 +36,24 @@ export default function LoginPage() {
       localStorage.setItem("access_token", access_token);
       toast.success("Logged in successfully!");
       router.push("/admin/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
 
-      if (err.response?.status === 401) {
-        setErrorMsg("Unauthorized access: Invalid credentials");
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "isAxiosError" in err &&
+        (err as AxiosError).isAxiosError
+      ) {
+        const axiosErr = err as AxiosError;
+
+        if (axiosErr.response?.status === 401) {
+          setErrorMsg("Unauthorized access: Invalid credentials");
+        } else {
+          setErrorMsg("Something went wrong. Please try again.");
+        }
       } else {
-        setErrorMsg("Something went wrong. Please try again.");
+        setErrorMsg("Unexpected error occurred.");
       }
 
       toast.error("Login failed.");
@@ -57,7 +69,6 @@ export default function LoginPage() {
           <CardTitle className="text-2xl font-semibold text-gray-800">
             Admin Login
           </CardTitle>
-          <p className="text-sm text-gray-500 mt-1"></p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-5">

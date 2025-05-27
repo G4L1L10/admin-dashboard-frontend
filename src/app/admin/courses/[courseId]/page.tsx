@@ -85,7 +85,8 @@ export default function CourseDetailsPage() {
       xpRangeFilter === "all" || inRange(lesson.xp_reward, xpRangeFilter);
 
     const crownsMatch =
-      crownsRangeFilter === "all" || inRange(lesson.crowns_reward, crownsRangeFilter);
+      crownsRangeFilter === "all" ||
+      inRange(lesson.crowns_reward, crownsRangeFilter);
 
     return difficultyMatch && unitMatch && xpMatch && crownsMatch;
   });
@@ -101,15 +102,21 @@ export default function CourseDetailsPage() {
       case "xp":
         return b.xp_reward - a.xp_reward;
       case "created_oldest":
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        return (
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
       case "created_newest":
       default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
     }
   });
 
   async function handleDeleteLesson(lessonId: string) {
-    const confirmDelete = window.confirm("Are you sure you want to delete this lesson?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this lesson?",
+    );
     if (!confirmDelete) return;
 
     try {
@@ -138,23 +145,37 @@ export default function CourseDetailsPage() {
           <div>
             <h1 className="text-xl font-semibold mb-3">All Lessons</h1>
             <p>
-              <span className="font-semibold text-gray-600">Course title:</span> {course.title}
+              <span className="font-semibold text-gray-600">Course title:</span>{" "}
+              {course.title}
             </p>
             <p>
-              <span className="font-semibold text-gray-600">Course description:</span> {course.description}
+              <span className="font-semibold text-gray-600">
+                Course description:
+              </span>{" "}
+              {course.description}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 mt-2 sm:mt-0 items-start sm:items-center flex-wrap">
-            <Button variant="outline" onClick={() => router.push("/admin/courses")}>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/admin/courses")}
+            >
               <BookOpen className="h-4 w-4 mr-2" />
               All Courses
             </Button>
-            <Button variant="outline" onClick={() => router.push(`/admin/courses/${courseId}/edit`)}>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/admin/courses/${courseId}/edit`)}
+            >
               <Pencil className="h-4 w-4 mr-2" />
               Edit Course
             </Button>
-            <Button onClick={() => router.push(`/admin/courses/${courseId}/lessons/create`)}>
+            <Button
+              onClick={() =>
+                router.push(`/admin/courses/${courseId}/lessons/create`)
+              }
+            >
               <span className="text-lg font-bold mr-2">+</span>
               Add Lesson
             </Button>
@@ -182,8 +203,12 @@ export default function CourseDetailsPage() {
               <SelectItem value="title_desc">Title (Z - A)</SelectItem>
               <SelectItem value="unit">Unit Number</SelectItem>
               <SelectItem value="xp">XP Reward</SelectItem>
-              <SelectItem value="created_newest">Date Created (Newest)</SelectItem>
-              <SelectItem value="created_oldest">Date Created (Oldest)</SelectItem>
+              <SelectItem value="created_newest">
+                Date Created (Newest)
+              </SelectItem>
+              <SelectItem value="created_oldest">
+                Date Created (Oldest)
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -213,8 +238,21 @@ export default function CourseDetailsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {["1-10", "11-20", "21-30", "31-40", "41-50", "51-60", "61-70", "71-80", "81-90", "91-100"].map((range) => (
-                <SelectItem key={range} value={range}>{range}</SelectItem>
+              {[
+                "1-10",
+                "11-20",
+                "21-30",
+                "31-40",
+                "41-50",
+                "51-60",
+                "61-70",
+                "71-80",
+                "81-90",
+                "91-100",
+              ].map((range) => (
+                <SelectItem key={range} value={range}>
+                  {range}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -229,8 +267,17 @@ export default function CourseDetailsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {["1-49", "50-99", "100-149", "150-199", "200-249", "250-299"].map((range) => (
-                <SelectItem key={range} value={range}>{range}</SelectItem>
+              {[
+                "1-49",
+                "50-99",
+                "100-149",
+                "150-199",
+                "200-249",
+                "250-299",
+              ].map((range) => (
+                <SelectItem key={range} value={range}>
+                  {range}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -239,14 +286,21 @@ export default function CourseDetailsPage() {
         {/* Crowns */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700 font-medium">Crowns:</span>
-          <Select value={crownsRangeFilter} onValueChange={setCrownsRangeFilter}>
+          <Select
+            value={crownsRangeFilter}
+            onValueChange={setCrownsRangeFilter}
+          >
             <SelectTrigger className="w-[160px] h-8 border-gray-300 hover:border-gray-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-500">
-              {crownsRangeFilter === "all" ? "All" : `Crowns ${crownsRangeFilter}`}
+              {crownsRangeFilter === "all"
+                ? "All"
+                : `Crowns ${crownsRangeFilter}`}
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               {["1-10", "11-20", "21-30", "31-40", "41-50"].map((range) => (
-                <SelectItem key={range} value={range}>{range}</SelectItem>
+                <SelectItem key={range} value={range}>
+                  {range}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -273,23 +327,47 @@ export default function CourseDetailsPage() {
                 </CardHeader>
                 <CardContent className="space-y-1">
                   <p className="text-gray-600">{lesson.description}</p>
-                  <p><span className="font-medium text-gray-800">Unit:</span> {lesson.unit}</p>
-                  <p><span className="font-medium text-gray-800">Difficulty:</span> {lesson.difficulty}</p>
-                  <p><span className="font-medium text-gray-800">XP Reward:</span> {lesson.xp_reward}</p>
-                  <p><span className="font-medium text-gray-800">Crowns:</span> {lesson.crowns_reward}</p>
+                  <p>
+                    <span className="font-medium text-gray-800">Unit:</span>{" "}
+                    {lesson.unit}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-800">
+                      Difficulty:
+                    </span>{" "}
+                    {lesson.difficulty}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-800">
+                      XP Reward:
+                    </span>{" "}
+                    {lesson.xp_reward}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-800">Crowns:</span>{" "}
+                    {lesson.crowns_reward}
+                  </p>
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => router.push(`/admin/courses/${courseId}/lessons/${lesson.id}/edit`)}
+                    onClick={() =>
+                      router.push(
+                        `/admin/courses/${courseId}/lessons/${lesson.id}/edit`,
+                      )
+                    }
                   >
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => router.push(`/admin/courses/${courseId}/lessons/${lesson.id}/questions`)}
+                    onClick={() =>
+                      router.push(
+                        `/admin/courses/${courseId}/lessons/${lesson.id}/questions`,
+                      )
+                    }
                   >
                     <ListChecks className="h-4 w-4 mr-2" />
                     Questions
@@ -311,4 +389,3 @@ export default function CourseDetailsPage() {
     </div>
   );
 }
-

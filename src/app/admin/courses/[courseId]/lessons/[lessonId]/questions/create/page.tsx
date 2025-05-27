@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
@@ -170,8 +171,28 @@ export default function CreateQuestionsPage() {
     setLeftMediaUploads(newUploads);
   };
 
-  const buildPayload = () => {
-    const payload: any = {
+  // Define payload type
+  type QuestionPayload = {
+    lesson_id: string | string[];
+    position: number;
+    question_text: string;
+    question_type: string;
+    explanation?: string;
+    tags: string[];
+    options?: string[];
+    answer?: string;
+    pairs?: [string, string][];
+    left_type?: "text" | "image" | "audio";
+    image_url?: string;
+    audio_url?: string;
+  };
+
+  type MediaUpdatePayload = Partial<
+    Pick<QuestionPayload, "image_url" | "audio_url" | "pairs" | "answer">
+  >;
+
+  const buildPayload = (): QuestionPayload => {
+    const payload: QuestionPayload = {
       lesson_id: lessonId,
       position: questionCount,
       question_text: questionText,
@@ -180,26 +201,27 @@ export default function CreateQuestionsPage() {
       tags,
     };
 
+    // Type narrowing and conditional inclusion
     if (questionType === "multiple_choice") {
       payload.options = options;
       payload.answer = answer;
-      payload.image_url = imageUrl || undefined;
-      payload.audio_url = audioUrl || undefined;
+      if (imageUrl) payload.image_url = imageUrl;
+      if (audioUrl) payload.audio_url = audioUrl;
     }
 
     if (questionType === "true_false") {
       payload.options = ["True", "False"];
       payload.answer = answer;
-      payload.image_url = imageUrl || undefined;
-      payload.audio_url = audioUrl || undefined;
+      if (imageUrl) payload.image_url = imageUrl;
+      if (audioUrl) payload.audio_url = audioUrl;
     }
 
     if (questionType === "matching_pairs") {
       payload.pairs = pairs;
       payload.answer = JSON.stringify(correctPairs);
       payload.left_type = matchingPairMediaType;
-      payload.image_url = imageUrl || undefined;
-      payload.audio_url = audioUrl || undefined;
+      if (imageUrl) payload.image_url = imageUrl;
+      if (audioUrl) payload.audio_url = audioUrl;
     }
 
     return payload;
@@ -210,7 +232,7 @@ export default function CreateQuestionsPage() {
     courseId: string,
     lessonId: string,
   ) {
-    const updates: Record<string, any> = {};
+    const updates: MediaUpdatePayload = {};
     const fullPayload = buildPayload();
 
     // DEBUG: Log initial state
@@ -552,90 +574,91 @@ export default function CreateQuestionsPage() {
 
                     {(matchingPairMediaType === "image" ||
                       matchingPairMediaType === "audio") && (
-                        <>
-                          <Input
-                            type="file"
-                            className="w-64 font-light text-gray-500"
-                            accept={
-                              matchingPairMediaType === "image"
-                                ? "image/*"
-                                : "audio/*"
-                            }
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
+                      <>
+                        <Input
+                          type="file"
+                          className="w-64 font-light text-gray-500"
+                          accept={
+                            matchingPairMediaType === "image"
+                              ? "image/*"
+                              : "audio/*"
+                          }
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
 
-                              // Store the File object, NOT the blob preview URL
-                              const updatedPairs = [...pairs];
-                              updatedPairs[idx][0] = file.name;
-                              setPairs(updatedPairs);
+                            // Store the File object, NOT the blob preview URL
+                            const updatedPairs = [...pairs];
+                            updatedPairs[idx][0] = file.name;
+                            setPairs(updatedPairs);
 
-                              const updatedCorrect = [...correctPairs];
-                              if (!updatedCorrect[idx])
-                                updatedCorrect[idx] = ["", ""];
-                              updatedCorrect[idx][0] = file.name;
-                              setCorrectPairs(updatedCorrect);
+                            const updatedCorrect = [...correctPairs];
+                            if (!updatedCorrect[idx])
+                              updatedCorrect[idx] = ["", ""];
+                            updatedCorrect[idx][0] = file.name;
+                            setCorrectPairs(updatedCorrect);
 
-                              const updatedUploads = [...leftMediaUploads];
-                              updatedUploads[idx] = file; // ✅ this must be the File
-                              setLeftMediaUploads(updatedUploads);
-                            }}
-                            required
-                          />
-                          {/* Previews */}
-                          {matchingPairMediaType === "image" &&
-                            leftMediaUploads[idx] && (
-                              <>
-                                {leftMediaUploads[idx] instanceof File ? (
-                                  <img
+                            const updatedUploads = [...leftMediaUploads];
+                            updatedUploads[idx] = file; // ✅ this must be the File
+                            setLeftMediaUploads(updatedUploads);
+                          }}
+                          required
+                        />
+                        {/* Previews */}
+                        {matchingPairMediaType === "image" &&
+                          leftMediaUploads[idx] && (
+                            <>
+                              {leftMediaUploads[idx] && (
+                                <Image
+                                  src={
+                                    leftMediaUploads[idx] instanceof File
+                                      ? URL.createObjectURL(
+                                          leftMediaUploads[idx] as File,
+                                        )
+                                      : (leftMediaUploads[idx] as string)
+                                  }
+                                  alt="Preview"
+                                  width={200}
+                                  height={100}
+                                  unoptimized
+                                  className="mt-2 rounded-md border object-contain"
+                                />
+                              )}
+                            </>
+                          )}
+
+                        {matchingPairMediaType === "audio" &&
+                          leftMediaUploads[idx] && (
+                            <>
+                              {leftMediaUploads[idx] instanceof File ? (
+                                <audio
+                                  controls
+                                  className="mt-2 w-full max-w-sm"
+                                >
+                                  <source
                                     src={URL.createObjectURL(
                                       leftMediaUploads[idx] as File,
                                     )}
-                                    alt="Preview"
-                                    className="mt-2 max-h-24 rounded-md border"
                                   />
-                                ) : (
-                                  <img
+                                  Your browser does not support the audio
+                                  element.
+                                </audio>
+                              ) : (
+                                <audio
+                                  controls
+                                  className="mt-2 w-full max-w-sm"
+                                >
+                                  <source
                                     src={leftMediaUploads[idx] as string}
-                                    alt="Preview"
-                                    className="mt-2 max-h-24 rounded-md border"
                                   />
-                                )}
-                              </>
-                            )}
-
-                          {matchingPairMediaType === "audio" &&
-                            leftMediaUploads[idx] && (
-                              <>
-                                {leftMediaUploads[idx] instanceof File ? (
-                                  <audio
-                                    controls
-                                    className="mt-2 w-full max-w-sm"
-                                  >
-                                    <source
-                                      src={URL.createObjectURL(
-                                        leftMediaUploads[idx] as File,
-                                      )}
-                                    />
-                                    Your browser does not support the audio
-                                    element.
-                                  </audio>
-                                ) : (
-                                  <audio
-                                    controls
-                                    className="mt-2 w-full max-w-sm"
-                                  >
-                                    <source
-                                      src={leftMediaUploads[idx] as string}
-                                    />
-                                    Your browser does not support the audio
-                                    element.
-                                  </audio>
-                                )}
-                              </>
-                            )}
-                        </>
-                      )}
+                                  Your browser does not support the audio
+                                  element.
+                                </audio>
+                              )}
+                            </>
+                          )}
+                      </>
+                    )}
                   </div>
 
                   {/* Right side (always text input) */}
@@ -772,10 +795,13 @@ export default function CreateQuestionsPage() {
               onChange={handleImageChange}
             />{" "}
             {imageUrlPreview && (
-              <img
+              <Image
                 src={imageUrlPreview}
                 alt="Preview"
-                className="mt-4 max-h-48 rounded-lg"
+                width={300}
+                height={150}
+                unoptimized
+                className="mt-4 rounded-lg object-contain border"
               />
             )}{" "}
           </div>
