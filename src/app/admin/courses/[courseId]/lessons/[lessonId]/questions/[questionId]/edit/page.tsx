@@ -121,6 +121,7 @@ export default function EditQuestionPage() {
             });
 
           setPairs(formattedPairs);
+          setLeftMediaUploads(formattedPairs.map((p) => p[0]));
         }
 
         if (question_type === "multiple_choice") {
@@ -346,6 +347,8 @@ export default function EditQuestionPage() {
                             setLeftMediaUploads(updatedUploads);
                           }}
                         />
+
+                        {/* ✅ Show preview for uploaded or existing images */}
                         {leftMediaType === "image" && leftMediaUploads[idx] && (
                           <Image
                             src={getPreviewUrl(leftMediaUploads[idx]) ?? ""}
@@ -356,29 +359,34 @@ export default function EditQuestionPage() {
                             className="mt-2 rounded-md border object-contain"
                           />
                         )}
+
+                        {/* ✅ Show preview for uploaded audio files (File object) */}
                         {leftMediaType === "audio" &&
-                        leftMediaUploads[idx] &&
-                        typeof leftMediaUploads[idx] !== "string" ? (
-                          <audio controls className="mt-2 w-full">
-                            <source
-                              src={URL.createObjectURL(
-                                leftMediaUploads[idx] as File,
-                              )}
-                            />
-                            Your browser does not support the audio element.
-                          </audio>
-                        ) : leftMediaType === "audio" &&
+                          leftMediaUploads[idx] &&
+                          typeof leftMediaUploads[idx] !== "string" && (
+                            <audio controls className="mt-2 w-full">
+                              <source
+                                src={URL.createObjectURL(
+                                  leftMediaUploads[idx] as File,
+                                )}
+                              />
+                              Your browser does not support the audio element.
+                            </audio>
+                          )}
+
+                        {/* ✅ Show preview for stored audio path (string from DB) */}
+                        {leftMediaType === "audio" &&
                           typeof leftMediaUploads[idx] === "string" &&
-                          leftMediaUploads[idx].trim() !== "" ? (
-                          <audio controls className="mt-2 w-full">
-                            <source
-                              src={`/api/media/signed-url?object=${encodeURIComponent(
-                                `uploads/course_${questionData.course_id}/lesson_${questionData.lesson_id}/question_${questionId}/${leftMediaUploads[idx]}`,
-                              )}`}
-                            />
-                            Your browser does not support the audio element.
-                          </audio>
-                        ) : null}
+                          leftMediaUploads[idx].trim() !== "" && (
+                            <audio controls className="mt-2 w-full">
+                              <source
+                                src={`/api/media/signed-url?object=${encodeURIComponent(
+                                  `uploads/course_${questionData.course_id}/lesson_${questionData.lesson_id}/question_${questionId}/${leftMediaUploads[idx]}`,
+                                )}`}
+                              />
+                              Your browser does not support the audio element.
+                            </audio>
+                          )}
                       </>
                     )}
                   </div>
