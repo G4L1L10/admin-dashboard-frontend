@@ -412,27 +412,54 @@ export default function EditQuestionPage() {
               {correctPairs.map((pair, idx) => (
                 <div key={idx} className="flex gap-2 mb-2 items-center">
                   {leftMediaType === "text" ? (
-                    <Input
-                      value={pair[0]}
-                      disabled
-                      className="w-64 bg-gray-100"
-                    />
+                    <>
+                      <Input
+                        value={pair[0]}
+                        disabled
+                        className="w-64 bg-gray-100"
+                      />
+                      <select
+                        value={pair[1] || ""}
+                        onChange={(e) =>
+                          handleCorrectAnswerChange(idx, e.target.value)
+                        }
+                        className="w-64 p-2 border rounded"
+                      >
+                        <option value="">Select</option>
+                        {pairs.map((p, i) => (
+                          <option key={i} value={p[1]}>
+                            {p[1]}
+                          </option>
+                        ))}
+                      </select>
+                    </>
                   ) : leftMediaType === "image" ? (
-                    <div className="w-64">
-                      <SignedImage object={pair[0]} />
-                    </div>
+                    <>
+                      <div className="w-64">
+                        <SignedImage object={pair[0]} />
+                      </div>
+                      <Input
+                        value={pair[1] || ""}
+                        onChange={(e) =>
+                          handleCorrectAnswerChange(idx, e.target.value)
+                        }
+                        className="w-64"
+                      />
+                    </>
                   ) : (
-                    <div className="w-64">
-                      <SignedAudio object={pair[0]} />
-                    </div>
+                    <>
+                      <div className="w-64">
+                        <SignedAudio object={pair[0]} />
+                      </div>
+                      <Input
+                        value={pair[1] || ""}
+                        onChange={(e) =>
+                          handleCorrectAnswerChange(idx, e.target.value)
+                        }
+                        className="w-64"
+                      />
+                    </>
                   )}
-                  <Input
-                    value={pair[1] || ""}
-                    onChange={(e) =>
-                      handleCorrectAnswerChange(idx, e.target.value)
-                    }
-                    className="w-64"
-                  />
                   <Button
                     type="button"
                     size="sm"
