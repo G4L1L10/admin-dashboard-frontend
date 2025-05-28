@@ -92,23 +92,16 @@ export default function CreateQuestionsPage() {
 
   const addTagField = () => setTags([...tags, ""]);
 
-  const handlePairChange = (index: number, pos: 0 | 1, value: string) => {
+  const handlePairChange = (index: number, side: 0 | 1, value: string) => {
     const updatedPairs = [...pairs];
-    updatedPairs[index][pos] = value;
+    updatedPairs[index][side] = value;
     setPairs(updatedPairs);
 
     const updatedCorrectPairs = [...correctPairs];
+    if (!updatedCorrectPairs[index]) updatedCorrectPairs[index] = ["", ""];
 
-    // Ensure the correctPairs array exists
-    if (!updatedCorrectPairs[index]) {
-      updatedCorrectPairs[index] = ["", ""];
-    }
-
-    // Only auto-fill the LEFT side (pos 0)
-    if (pos === 0) {
-      updatedCorrectPairs[index][0] = value;
-    }
-
+    // Auto-sync left side of correctPairs with pairs
+    updatedCorrectPairs[index][0] = updatedPairs[index][0];
     setCorrectPairs(updatedCorrectPairs);
   };
 
@@ -692,24 +685,32 @@ export default function CreateQuestionsPage() {
               </label>
               {correctPairs.map((pair, idx) => (
                 <div key={idx} className="flex gap-4 mb-2">
+                  {/* Left (mirrored, disabled) */}
                   <Input
                     placeholder="Left side (Correct)"
-                    className="w-64"
+                    className="w-64 bg-gray-100 text-gray-600"
                     value={pair[0]}
-                    onChange={(e) =>
-                      handleCorrectPairChange(idx, 0, e.target.value)
-                    }
-                    required
+                    disabled
                   />
-                  <Input
-                    placeholder="Right side (Correct)"
-                    className="w-64"
+
+                  {/* Right (dropdown restricted to available right-side options) */}
+                  <select
+                    className="w-64 p-2 border rounded"
                     value={pair[1]}
                     onChange={(e) =>
                       handleCorrectPairChange(idx, 1, e.target.value)
                     }
                     required
-                  />
+                  >
+                    <option value="">Select</option>
+                    {[
+                      ...new Set(pairs.map((pair) => pair[1]).filter(Boolean)),
+                    ].map((rightOption, i) => (
+                      <option key={i} value={rightOption}>
+                        {rightOption}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               ))}
             </div>

@@ -1,4 +1,3 @@
-// back tio this
 "use client";
 
 import { useState, useEffect } from "react";
@@ -59,14 +58,10 @@ export default function EditQuestionPage() {
           position,
         } = qRes.data;
 
-        // 🧠 Step 1: Fetch lesson details (to get course_id)
         const lessonRes = await api.get(`/lessons/detail/${lesson_id}`);
         const courseId = lessonRes.data.course_id;
-
-        // 🧠 Step 2: Fetch course details (optional)
         const courseRes = await api.get(`/courses/${courseId}`);
 
-        // ✅ Step 3: Set state with all required values
         setQuestionData({
           question_text,
           question_type,
@@ -75,39 +70,51 @@ export default function EditQuestionPage() {
           image_url: image_url ?? "",
           audio_url: audio_url ?? "",
           position,
-          course_id: courseId, // ✅ Add this to be used in uploads
+          course_id: courseId,
         });
 
         setLessonTitle(lessonRes.data.title);
         setCourseTitle(courseRes.data.title);
+        setTags(tags ?? []);
 
-        // Handle answer and pairs
+        // Matching Pairs
         if (question_type === "matching_pairs") {
           try {
             const parsed = JSON.parse(answer);
             setCorrectPairs(parsed);
+
+            const firstLeft = parsed?.[0]?.[0] || "";
+            if (firstLeft.match(/\.(png|jpg|jpeg)$/i)) {
+              setLeftMediaType("image");
+            } else if (firstLeft.match(/\.(mp3|m4a|wav)$/i)) {
+              setLeftMediaType("audio");
+            } else {
+              setLeftMediaType("text");
+            }
           } catch {
             setCorrectPairs([]);
+            setLeftMediaType("text");
           }
-        } else {
-          setAnswer(answer ?? "");
+
+          // ✅ Set `pairs` ONLY for matching_pairs
+          const rawOptions = options ?? [];
+          const formattedPairs = rawOptions
+            .filter((opt: string) => opt.includes("::"))
+            .map((opt: string) => {
+              const [left, right] = opt.split("::").map((s) => s.trim());
+              return [left, right] as [string, string];
+            });
+
+          setPairs(formattedPairs);
         }
 
         if (question_type === "multiple_choice") {
           setOptions(options ?? ["", "", "", ""]);
         }
 
-        setTags(tags ?? []);
-
-        // Parse options for matching pairs
-        const rawOptions = qRes.data.options ?? [];
-        const formattedPairs = rawOptions
-          .filter((opt: string) => opt.includes("::"))
-          .map((opt: string) => {
-            const [left, right] = opt.split("::").map((s) => s.trim());
-            return [left, right] as [string, string];
-          });
-        setPairs(formattedPairs);
+        if (question_type === "true_false") {
+          setAnswer(answer ?? "");
+        }
       } catch (error) {
         console.error("Failed to fetch question context", error);
         toast.error("Failed to load question details");
@@ -152,7 +159,7 @@ export default function EditQuestionPage() {
 
     if (correctPairs[idx]) {
       const correct = [...correctPairs];
-      correct[idx][0] = updated[idx][0]; // auto-update left
+      correct[idx][0] = updated[idx][0];
       setCorrectPairs(correct);
     } else {
       setCorrectPairs([...correctPairs, [updated[idx][0], ""]]);
@@ -188,7 +195,6 @@ export default function EditQuestionPage() {
 
   const addTagField = () => setTags([...tags, ""]);
   const removeTag = (idx: number) => setTags(tags.filter((_, i) => i !== idx));
-
   const handleOptionChange = (idx: number, value: string) => {
     const updated = [...options];
     updated[idx] = value;
@@ -251,7 +257,6 @@ export default function EditQuestionPage() {
           </select>
         </div>
 
-        {/* OPTIONS */}
         {questionData.question_type === "multiple_choice" && (
           <div>
             <label className="block text-sm mb-1">Options</label>
@@ -266,7 +271,6 @@ export default function EditQuestionPage() {
           </div>
         )}
 
-        {/* MATCHING PAIRS */}
         {questionData.question_type === "matching_pairs" && (
           <>
             <div>
@@ -324,12 +328,22 @@ export default function EditQuestionPage() {
                 Correct Matching (Answer)
               </label>
               {correctPairs.map((pair, idx) => (
-                <div key={idx} className="flex gap-2 mb-2">
-                  <Input
-                    value={pairs[idx]?.[0] || ""}
-                    disabled
-                    className="w-64 bg-gray-100"
-                  />
+                <div key={idx} className="flex gap-2 mb-2 items-center">
+                  {leftMediaType === "text" ? (
+                    <Input
+                      value={pair[0]}
+                      disabled
+                      className="w-64 bg-gray-100"
+                    />
+                  ) : leftMediaType === "image" ? (
+                    <div className="w-64">
+                      <SignedImage object={pair[0]} />
+                    </div>
+                  ) : (
+                    <div className="w-64">
+                      <SignedAudio object={pair[0]} />
+                    </div>
+                  )}
                   <Input
                     value={pair[1] || ""}
                     onChange={(e) =>
@@ -337,13 +351,20 @@ export default function EditQuestionPage() {
                     }
                     className="w-64"
                   />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removePair(idx)}
+                  >
+                    ✖
+                  </Button>
                 </div>
               ))}
             </div>
           </>
         )}
 
-        {/* TRUE FALSE */}
         {questionData.question_type === "true_false" && (
           <div>
             <label className="block text-sm mb-1">Correct Answer</label>
@@ -390,10 +411,13 @@ export default function EditQuestionPage() {
 
         {!questionData.image_url && (
           <div>
-            <label className="block text-sm mb-1">Upload New Image</label>
-            <input
+            <label className="block text-sm font-medium mb-1">
+              Upload Image
+            </label>
+            <Input
               type="file"
               accept="image/*"
+              className="w-64 font-light text-gray-500"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -405,7 +429,6 @@ export default function EditQuestionPage() {
                     questionData.lesson_id,
                     questionId as string,
                   );
-
                   setQuestionData((prev) => ({
                     ...prev,
                     image_url: objectPath,
@@ -439,10 +462,13 @@ export default function EditQuestionPage() {
           </div>
         ) : (
           <div>
-            <label className="block text-sm mb-1">Upload New Audio</label>
-            <input
+            <label className="block text-sm font-medium mb-1">
+              Upload Audio
+            </label>
+            <Input
               type="file"
               accept="audio/*"
+              className="w-64 font-light text-gray-500"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -454,7 +480,6 @@ export default function EditQuestionPage() {
                     questionData.lesson_id,
                     questionId as string,
                   );
-
                   setQuestionData((prev) => ({
                     ...prev,
                     audio_url: objectPath,
@@ -473,7 +498,6 @@ export default function EditQuestionPage() {
           <label className="block text-sm font-medium mb-1">
             Tags (optional)
           </label>
-
           {tags.map((tag, idx) => (
             <div key={idx} className="flex items-center gap-2 mb-2">
               <Input
@@ -493,7 +517,6 @@ export default function EditQuestionPage() {
               </Button>
             </div>
           ))}
-
           <Button type="button" onClick={addTagField} className="mt-2">
             Add Tag
           </Button>
