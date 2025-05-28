@@ -11,6 +11,17 @@ import api from "@/lib/api";
 import SignedImage from "@/components/SignedImage";
 import SignedAudio from "@/components/SignedAudio";
 import { uploadViaSignedUrl } from "@/lib/upload";
+import Image from "next/image";
+
+function getPreviewUrl(fileOrPath: File | string | undefined): string | null {
+  if (!fileOrPath) return null;
+
+  if (fileOrPath instanceof File) {
+    return URL.createObjectURL(fileOrPath);
+  }
+
+  return `/api/media/signed-url?object=${encodeURIComponent(fileOrPath)}`;
+}
 
 export default function EditQuestionPage() {
   const { questionId } = useParams();
@@ -39,6 +50,10 @@ export default function EditQuestionPage() {
   const [leftMediaType, setLeftMediaType] = useState<
     "text" | "image" | "audio"
   >("text");
+  const [leftMediaUploads, setLeftMediaUploads] = useState<(File | string)[]>(
+    [],
+  );
+
   const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
@@ -135,11 +150,9 @@ export default function EditQuestionPage() {
         questionData.question_type === "matching_pairs"
           ? JSON.stringify(correctPairs)
           : answer,
-      options:
-        questionData.question_type === "multiple_choice"
-          ? options
-          : pairs.map(([left, right]) => `${left} :: ${right}`),
+      options: questionData.question_type === "multiple_choice" ? options : [],
       tags: tags.filter((tag) => tag.trim() !== ""),
+      pairs: questionData.question_type === "matching_pairs" ? pairs : [],
     };
 
     try {
@@ -295,19 +308,88 @@ export default function EditQuestionPage() {
                 Matching Pairs (Options)
               </label>
               {pairs.map((pair, idx) => (
-                <div key={idx} className="flex gap-2 items-center mb-2">
-                  <Input
-                    placeholder="Left"
-                    value={pair[0]}
-                    onChange={(e) => handlePairChange(idx, 0, e.target.value)}
-                    className="w-64"
-                  />
+                <div key={idx} className="flex gap-2 items-start mb-4">
+                  <div className="w-64">
+                    {leftMediaType === "text" ? (
+                      <Input
+                        placeholder="Left"
+                        value={pair[0]}
+                        onChange={(e) =>
+                          handlePairChange(idx, 0, e.target.value)
+                        }
+                        className="w-full"
+                      />
+                    ) : (
+                      <>
+                        <Input
+                          type="file"
+                          accept={
+                            leftMediaType === "image" ? "image/*" : "audio/*"
+                          }
+                          className="w-full font-light text-gray-500"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+
+                            const updatedPairs = [...pairs];
+                            updatedPairs[idx][0] = file.name;
+                            setPairs(updatedPairs);
+
+                            const updatedCorrect = [...correctPairs];
+                            if (!updatedCorrect[idx])
+                              updatedCorrect[idx] = ["", ""];
+                            updatedCorrect[idx][0] = file.name;
+                            setCorrectPairs(updatedCorrect);
+
+                            const updatedUploads = [...leftMediaUploads];
+                            updatedUploads[idx] = file;
+                            setLeftMediaUploads(updatedUploads);
+                          }}
+                        />
+                        {leftMediaType === "image" && leftMediaUploads[idx] && (
+                          <Image
+                            src={getPreviewUrl(leftMediaUploads[idx]) ?? ""}
+                            alt="Preview"
+                            width={200}
+                            height={100}
+                            unoptimized
+                            className="mt-2 rounded-md border object-contain"
+                          />
+                        )}
+                        {leftMediaType === "audio" &&
+                        leftMediaUploads[idx] &&
+                        typeof leftMediaUploads[idx] !== "string" ? (
+                          <audio controls className="mt-2 w-full">
+                            <source
+                              src={URL.createObjectURL(
+                                leftMediaUploads[idx] as File,
+                              )}
+                            />
+                            Your browser does not support the audio element.
+                          </audio>
+                        ) : leftMediaType === "audio" &&
+                          typeof leftMediaUploads[idx] === "string" &&
+                          leftMediaUploads[idx].trim() !== "" ? (
+                          <audio controls className="mt-2 w-full">
+                            <source
+                              src={`/api/media/signed-url?object=${encodeURIComponent(
+                                `uploads/course_${questionData.course_id}/lesson_${questionData.lesson_id}/question_${questionId}/${leftMediaUploads[idx]}`,
+                              )}`}
+                            />
+                            Your browser does not support the audio element.
+                          </audio>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+
                   <Input
                     placeholder="Right"
                     value={pair[1]}
                     onChange={(e) => handlePairChange(idx, 1, e.target.value)}
                     className="w-64"
                   />
+
                   <Button
                     type="button"
                     size="sm"
