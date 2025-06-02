@@ -1,8 +1,38 @@
 // src/lib/api.ts
 
 import axios from "axios";
-import { setAccessToken } from "./auth";
 
+let accessToken: string | null = null;
+
+// ✅ Set access token in memory
+export function setAccessToken(token: string) {
+  accessToken = token;
+}
+
+// ✅ Get access token (optional debug)
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
+// ✅ Refresh token using cookie (must match backend: POST /auth/refresh)
+export async function refreshAccessToken(): Promise<string | null> {
+  try {
+    const response = await axios.post(
+      "http://localhost:8081/auth/refresh", // ✅ Must be POST to match Go route
+      null, // ✅ No body needed
+      { withCredentials: true }, // ✅ Send HttpOnly cookie
+    );
+
+    const token = response.data.access_token;
+    setAccessToken(token); // ✅ Store in memory
+    return token;
+  } catch (err) {
+    console.error("❌ Failed to refresh access token", err);
+    return null;
+  }
+}
+
+// ✅ Axios instance for all protected APIs
 const api = axios.create({
   baseURL: "http://localhost:8080/api",
   timeout: 5000,
@@ -11,32 +41,13 @@ const api = axios.create({
   },
 });
 
-// ✅ On every request, attach access_token if available
-api.interceptors.request.use(async (config) => {
-  const token = sessionStorage.getItem("access_token"); // Only kept in memory/session
-  if (token) {
+// ✅ Attach token automatically on requests
+api.interceptors.request.use((config) => {
+  if (accessToken) {
     config.headers = config.headers || {};
-    config.headers["Authorization"] = `Bearer ${token}`;
+    config.headers["Authorization"] = `Bearer ${accessToken}`;
   }
   return config;
 });
-
-export async function refreshAccessToken(): Promise<void> {
-  try {
-    const response = await axios.post(
-      "http://localhost:8081/auth/refresh",
-      null,
-      {
-        withCredentials: true, // ✅ Sends refresh_token cookie
-      },
-    );
-
-    const newToken = response.data.access_token;
-    setAccessToken(newToken); // Saves it to sessionStorage
-  } catch (err) {
-    console.error("Refresh failed", err);
-    throw new Error("Token refresh failed");
-  }
-}
 
 export default api;
