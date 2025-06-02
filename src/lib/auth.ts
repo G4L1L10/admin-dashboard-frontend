@@ -1,37 +1,53 @@
+// src/lib/auth.ts
 import { jwtDecode } from "jwt-decode";
-
-export function isLoggedIn(): boolean {
-  if (typeof window === "undefined") return false;
-  return !!localStorage.getItem("access_token");
-}
-
-export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token");
-}
-
-export function setAccessToken(token: string) {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("access_token", token);
-  }
-}
-
-export function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("access_token");
-    window.location.href = "/login";
-  }
-}
 
 interface TokenPayload {
   email?: string;
   user_id?: string;
+  role?: string;
   exp?: number;
   iat?: number;
 }
 
+// 👇 In-memory access token
+let accessTokenMemory: string | null = null;
+
+export function setAccessToken(token: string) {
+  accessTokenMemory = token;
+}
+
+export function getAccessToken(): string | null {
+  return accessTokenMemory;
+}
+
 /**
- * Get the email of the logged in user from the access token.
+ * Refresh the access token using the HttpOnly refresh cookie.
+ * Returns the new access token string if successful, or null if failed.
+ */
+export async function refreshAccessToken(): Promise<boolean> {
+  try {
+    const res = await fetch("http://localhost:8081/auth/refresh", {
+      method: "POST",
+      credentials: "include", // ✅ cookie must be sent
+    });
+
+    const data = await res.json();
+    console.log("🔁 Refresh response:", res.status, data); // 👈 add this
+
+    if (res.ok && data.access_token) {
+      setAccessToken(data.access_token);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("❌ Failed to refresh access token", error);
+    return false;
+  }
+}
+
+/**
+ * Extract user email from decoded JWT.
  */
 export function getUserEmail(): string | null {
   const token = getAccessToken();
@@ -40,8 +56,34 @@ export function getUserEmail(): string | null {
   try {
     const decoded = jwtDecode<TokenPayload>(token);
     return decoded.email || null;
-  } catch (err) {
-    console.error("Failed to decode token", err);
+  } catch {
     return null;
   }
+}
+
+/**
+ * Extract user role from decoded JWT.
+ */
+export function getUserRole(): string | null {
+  const token = getAccessToken();
+  if (!token) return null;
+
+  try {
+    const decoded = jwtDecode<TokenPayload>(token);
+    return decoded.role || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Logout by clearing refresh token cookie on server and redirect to login.
+ */
+export function logout() {
+  fetch("http://localhost:8081/auth/logout", {
+    method: "POST",
+    credentials: "include", // send refresh cookie
+  }).finally(() => {
+    window.location.href = "/login";
+  });
 }

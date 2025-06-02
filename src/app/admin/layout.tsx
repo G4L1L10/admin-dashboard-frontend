@@ -1,20 +1,26 @@
-// src/app/admin/layout.tsx (Server Component — no "use client")
+// src/app/admin/layout.tsx
+"use client";
+
 import "@/styles/globals.css";
+import { useEffect } from "react";
 import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
 import { Toaster } from "sonner";
-import AuthGuard from "@/components/auth-guard"; // 👈 Step 2 below
-
-export const metadata = {
-  title: "Bandroom Admin Dashboard",
-  description: "Manage your Bandroom platform easily.",
-};
+import AuthGuard from "@/components/auth-guard";
+import { refreshAccessToken } from "@/lib/api";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  useEffect(() => {
+    // 🔁 Attempt to refresh access_token from HttpOnly cookie
+    refreshAccessToken().catch(() => {
+      console.warn("Token refresh failed or user not logged in.");
+    });
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />

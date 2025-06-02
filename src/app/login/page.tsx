@@ -1,3 +1,4 @@
+// src/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import authApi from "@/lib/authApi";
+import axios from "axios";
+import { setAccessToken } from "@/lib/auth";
 import type { AxiosError } from "axios";
 
 export default function LoginPage() {
@@ -22,18 +24,18 @@ export default function LoginPage() {
     setErrorMsg(null);
 
     try {
-      const response = await authApi.post("/login", {
-        email,
-        password,
-      });
+      const res = await axios.post(
+        "http://localhost:8081/auth/login",
+        { email, password },
+        { withCredentials: true }, // ✅ allow refresh_token cookie
+      );
 
-      const { access_token } = response.data;
-
-      if (!access_token) {
+      const accessToken = res.data.access_token;
+      if (!accessToken) {
         throw new Error("No access token returned");
       }
 
-      localStorage.setItem("access_token", access_token);
+      setAccessToken(accessToken); // ✅ In-memory only
       toast.success("Logged in successfully!");
       router.push("/admin/dashboard");
     } catch (err: unknown) {
@@ -46,7 +48,6 @@ export default function LoginPage() {
         (err as AxiosError).isAxiosError
       ) {
         const axiosErr = err as AxiosError;
-
         if (axiosErr.response?.status === 401) {
           setErrorMsg("Unauthorized access: Invalid credentials");
         } else {
